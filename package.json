@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "displayName": "Mobile Render Pipeline",
   "description": "A custom rendering pipeline optimized for mobile platforms.",
-  "unity": "2022.3",
+  "unity": "2019.4",
   "dependencies": {
-    "com.unity.render-pipelines.core": "14.0.8"
+    "com.unity.render-pipelines.core": "14"
   },
   "keywords": [
     "render",
@@ -18,14 +18,5 @@
     "name": "Austin Crane",
     "email": "me@austincrane.us",
     "url": "http://euclideandreams.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/parodyband/Mobile-Render-Pipeline.git"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/parodyband/Mobile-Render-Pipelinee/issues"
-  },
-  "homepage": "https://https://github.com/parodyband/Mobile-Render-Pipeline#readme"
+  }
 }
