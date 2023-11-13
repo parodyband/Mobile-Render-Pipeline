@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace Mobile_SRP.Runtime
 {
-    [CreateAssetMenu(menuName = "Rendering/Mobile Render Pipelinasdfe")]
+    //[CreateAssetMenu(menuName = "Rendering/Mobile Render Editor Assets")]
     public class MobileRenderPipelineEditorResources : ScriptableObject
     {
         public MaterialResources materials;
