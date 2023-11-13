@@ -1,6 +1,6 @@
 {
   "name": "com.euclideandreams.mobilerenderpipeline",
-  "version": "0.1.0",
+  "version": "0.1.01",
   "displayName": "Mobile Render Pipeline",
   "description": "A custom rendering pipeline optimized for mobile platforms.",
   "unity": "2019.4",
