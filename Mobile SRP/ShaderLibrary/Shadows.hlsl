@@ -23,12 +23,12 @@ SAMPLER_CMP(SHADOW_SAMPLER);
 
 CBUFFER_START(_CustomShadows)
 	int _CascadeCount;
-	half4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
-	half4 _CascadeData[MAX_CASCADE_COUNT];
-	half4x4 _DirectionalShadowMatrices
+	real4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
+	real4 _CascadeData[MAX_CASCADE_COUNT];
+	real4x4 _DirectionalShadowMatrices
 		[MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
-	half4 _ShadowAtlasSize;
-	half4 _ShadowDistanceFade;
+	real4 _ShadowAtlasSize;
+	real4 _ShadowDistanceFade;
 CBUFFER_END
 
 struct ShadowData {
@@ -37,7 +37,7 @@ struct ShadowData {
 	half strength;
 };
 
-half FadedShadowStrength (float distance, float scale, float fade) {
+real FadedShadowStrength (float distance, float scale, float fade) {
 	return saturate((1.0 - distance * scale) * fade);
 }
 
@@ -81,27 +81,27 @@ ShadowData GetShadowData (Surface surfaceWS) {
 }
 
 struct DirectionalShadowData {
-	float strength;
+	real strength;
 	int tileIndex;
-	float normalBias;
+	real normalBias;
 };
 
-float SampleDirectionalShadowAtlas (half3 positionSTS) {
+float SampleDirectionalShadowAtlas (real3 positionSTS) {
 	return SAMPLE_TEXTURE2D_SHADOW(
 		_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS
 	);
 }
 
-float FilterDirectionalShadow (half3 positionSTS) {
+float FilterDirectionalShadow (real3 positionSTS) {
 	#if defined(DIRECTIONAL_FILTER_SETUP)
-		half weights[DIRECTIONAL_FILTER_SAMPLES];
+		real weights[DIRECTIONAL_FILTER_SAMPLES];
 		real2 positions[DIRECTIONAL_FILTER_SAMPLES];
 		real4 size = _ShadowAtlasSize.yyxx;
 		DIRECTIONAL_FILTER_SETUP(size, positionSTS.xy, weights, positions);
-		half shadow = 0;
+		real shadow = 0;
 		for (int i = 0; i < DIRECTIONAL_FILTER_SAMPLES; i++) {
 			shadow += weights[i] * SampleDirectionalShadowAtlas(
-				half3(positions[i].xy, positionSTS.z)
+				real3(positions[i].xy, positionSTS.z)
 			);
 		}
 		return shadow;
