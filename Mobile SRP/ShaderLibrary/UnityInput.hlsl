@@ -9,6 +9,8 @@ real4 unity_WorldTransformParams;
 
 float4 unity_LightmapST;
 float4 unity_DynamicLightmapST;
+half4 unity_LightData;
+
 
 float4 unity_SHAr;
 float4 unity_SHAg;

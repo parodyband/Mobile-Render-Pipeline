@@ -51,7 +51,11 @@ half GetSmoothnessPower(float smoothness) {
 
 half3 MobileLightingHandler (Surface surface, Light light) {
     const half lightIntensity = dot(light.color, grayscaleConversion);
-    const half3 diffuse = IncomingLight(surface, light);
+
+    const half3 radiance = light.color * light.attenuation;
+    //const half3 diffuse = IncomingLight(surface, light);
+    const half3 diffuse = saturate(dot(surface.normal, light.direction));
+    
     const half diffuseGray = dot(diffuse, grayscaleConversion);
 
     //Blinn Phong
@@ -62,8 +66,8 @@ half3 MobileLightingHandler (Surface surface, Light light) {
     const half specularStrength = SpecularStrengthMobile(surface, surface.smoothness, light.direction);
     const half specular = specularStrength * diffuseGray * surface.specularPower;
     
-    half3 metalColor = surface.color * (diffuse + (specular * light.color));
-    
+    half3 metalColor = surface.color * radiance * (diffuse + specular);
+
     half3 color = metalColor;
 
     #ifdef _MATCAP_ON

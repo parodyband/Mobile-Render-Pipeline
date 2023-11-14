@@ -22,6 +22,7 @@ struct Light {
 	real3 color;
 	real3 direction;
 	float attenuation;
+	//float distanceAttenuation;
 };
 
 int GetDirectionalLightCount () {
@@ -30,6 +31,21 @@ int GetDirectionalLightCount () {
 
 int GetOtherLightCount () {
 	return _OtherLightCount;
+}
+
+float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
+{
+	// We use a shared distance attenuation for additional directional and puctual lights
+	// for directional lights attenuation will be 1
+	float lightAtten = rcp(distanceSqr);
+	float2 distanceAttenuationFloat = float2(distanceAttenuation);
+
+	// Use the smoothing factor also used in the Unity lightmapper.
+	half factor = half(distanceSqr * distanceAttenuationFloat.x);
+	half smoothFactor = saturate(half(1.0) - factor * factor);
+	smoothFactor = smoothFactor * smoothFactor;
+
+	return lightAtten * smoothFactor;
 }
 
 DirectionalShadowData GetDirectionalShadowData ( int lightIndex, ShadowData shadowData ) {
@@ -48,6 +64,7 @@ Light GetDirectionalLight ( int index, Surface surfaceWS, ShadowData shadowData 
 	light.direction = _DirectionalLightDirections[index].xyz;
 	const DirectionalShadowData dirShadowData = GetDirectionalShadowData(index, shadowData);
 	light.attenuation = GetDirectionalShadowAttenuation(dirShadowData, shadowData, surfaceWS);
+	//light.distanceAttenuation = 1.0;
 	return light;
 }
 
@@ -64,7 +81,7 @@ Light GetDirectionalLight (int index) {
 	light.direction = _DirectionalLightDirections[index].xyz;
 	light.attenuation = 1.0;
 	return light;
-}
+} 
 
 Light GetOtherLight (int index, Surface surfaceWS) {
 	Light light;
@@ -77,6 +94,7 @@ Light GetOtherLight (int index, Surface surfaceWS) {
 		saturate(1.0 - Square(distanceSqr * _OtherLightPositions[index].w))
 	);
 	light.attenuation = rangeAttenuation / distanceSqr;
+	//light.attenuation = DistanceAttenuation(distanceSqr, _OtherLightPositions[index].zw);
 	return light;
 }
 
