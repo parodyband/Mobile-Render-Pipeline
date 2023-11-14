@@ -33,8 +33,8 @@ CBUFFER_END
 
 struct ShadowData {
 	int cascadeIndex;
-	half cascadeBlend;
-	half strength;
+	real cascadeBlend;
+	real strength;
 };
 
 real FadedShadowStrength (float distance, float scale, float fade) {
@@ -86,7 +86,7 @@ struct DirectionalShadowData {
 	real normalBias;
 };
 
-float SampleDirectionalShadowAtlas (real3 positionSTS) {
+float SampleDirectionalShadowAtlas (float3 positionSTS) {
 	return SAMPLE_TEXTURE2D_SHADOW(
 		_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS
 	);
@@ -119,9 +119,9 @@ float GetDirectionalShadowAttenuation (
 	if (directional.strength <= 0.0) {
 		return 1.0;
 	}
-	float3 normalBias = surfaceWS.normal *
+	real3 normalBias = surfaceWS.normal *
 		(directional.normalBias * _CascadeData[global.cascadeIndex].y);
-	float3 positionSTS = mul(
+	real3 positionSTS = mul(
 		_DirectionalShadowMatrices[directional.tileIndex],
 		float4(surfaceWS.position + normalBias, 1.0)
 	).xyz;
@@ -131,7 +131,7 @@ float GetDirectionalShadowAttenuation (
 			(directional.normalBias * _CascadeData[global.cascadeIndex + 1].y);
 		positionSTS = mul(
 			_DirectionalShadowMatrices[directional.tileIndex + 1],
-			float4(surfaceWS.position + normalBias, 1.0)
+			real4(surfaceWS.position + normalBias, 1.0)
 		).xyz;
 		shadow = lerp(
 			FilterDirectionalShadow(positionSTS), shadow, global.cascadeBlend
