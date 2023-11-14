@@ -95,8 +95,8 @@ float SampleDirectionalShadowAtlas (half3 positionSTS) {
 float FilterDirectionalShadow (half3 positionSTS) {
 	#if defined(DIRECTIONAL_FILTER_SETUP)
 		half weights[DIRECTIONAL_FILTER_SAMPLES];
-		half2 positions[DIRECTIONAL_FILTER_SAMPLES];
-		half4 size = _ShadowAtlasSize.yyxx;
+		real2 positions[DIRECTIONAL_FILTER_SAMPLES];
+		real4 size = _ShadowAtlasSize.yyxx;
 		DIRECTIONAL_FILTER_SETUP(size, positionSTS.xy, weights, positions);
 		half shadow = 0;
 		for (int i = 0; i < DIRECTIONAL_FILTER_SAMPLES; i++) {

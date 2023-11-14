@@ -30,11 +30,11 @@ half SpecularStrengthMobile(Surface surface, float smoothness, float3 lightDirec
     // Convert smoothness to roughness
     const float roughness = 1.0 - smoothness;
 
-    float3 h = SafeNormalize(lightDirection + surface.viewDirection);
-    float nh2 = Square(saturate(dot(surface.normal, h)));
-    float lh2 = Square(saturate(dot(lightDirection, h)));
-    float r2 = Square(roughness); // Use roughness for the calculation
-    float d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
+    const float3 h = SafeNormalize(lightDirection + surface.viewDirection);
+    const float nh2 = Square(saturate(dot(surface.normal, h)));
+    const float lh2 = Square(saturate(dot(lightDirection, h)));
+    const float r2 = Square(roughness); // Use roughness for the calculation
+    const float d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
     const float normalization = roughness * 4.0 + 2.0; // Adjust based on roughness
     const float ndotl = saturate(dot(surface.normal, lightDirection));
     const float linearFalloff = 1.0 - ndotl;
