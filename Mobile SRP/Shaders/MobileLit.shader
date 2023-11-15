@@ -29,7 +29,8 @@
     	
         [Toggle(_PREMULTIPLY_ALPHA)] _PremulAlpha ("Premultiply Alpha", Float) = 0
         [Toggle(_VERTEX_LIGHTING_ON)] _VertexLighting("Use Vertex Lighting", Float) = 0
-        
+        [Toggle(_HALF_LAMBERT)] _HalfLambert("Use Half Lambert", Float) = 0
+
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
         [Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
@@ -54,6 +55,7 @@
 			#pragma shader_feature _PREMULTIPLY_ALPHA
 			#pragma shader_feature _NORMAL_MAP
 			#pragma shader_feature _VERTEX_LIGHTING_ON
+			#pragma shader_feature _HALF_LAMBERT
 			#pragma shader_feature _MATCAP_ON
 			
 			#pragma multi_compile _ SHADOWS_ENABLED

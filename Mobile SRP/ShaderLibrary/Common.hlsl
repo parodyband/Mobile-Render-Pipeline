@@ -38,10 +38,23 @@ half3 DecodeNormal (half4 sample) {
     #endif
 }
 
-half3 NormalTangentToWorld (half3 normalTS, half3 normalWS, half4 tangentWS) {
+real3 NormalTangentToWorld (half3 normalTS, half3 normalWS, half4 tangentWS) {
     const half3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
     return TransformTangentToWorld(normalTS, tangentToWorld, true);
 }
-
+real invLerp(real from, real to, real value){
+    return (value - from) / (to - from);
+}
+real4 invLerp(real4 from, real4 to, real4 value) {
+    return (value - from) / (to - from);
+}
+real remap(real origFrom, real origTo, real targetFrom, real targetTo, real value){
+    const float rel = invLerp(origFrom, origTo, value);
+    return lerp(targetFrom, targetTo, rel);
+}
+real4 remap(real4 origFrom, real4 origTo, real4 targetFrom, real4 targetTo, real4 value){
+    const real4 rel = invLerp(origFrom, origTo, value);
+    return lerp(targetFrom, targetTo, rel);
+}
 
 #endif

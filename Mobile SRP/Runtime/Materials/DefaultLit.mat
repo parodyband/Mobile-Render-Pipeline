@@ -55,6 +55,7 @@ Material:
     - _Clipping: 0
     - _Cutoff: 0.5
     - _DstBlend: 0
+    - _HalfLambert: 0
     - _MatCapOn: 0
     - _MatCapPower: 0.5
     - _Metallic: 0.358

@@ -4,7 +4,7 @@
 static const half3 grayscaleConversion = half3(0.299, 0.587, 0.114);
 
 half3 IncomingLight (Surface surface, Light light) {
-    half nDotL = max(0, dot(surface.normal, light.direction));
+    const half nDotL = max(0, dot(surface.normal, light.direction));
     return saturate(nDotL * light.attenuation) * light.color;
 }
 
@@ -26,61 +26,62 @@ half3 GetLighting (Surface surfaceWS, BRDF brdf, GI gi) {
     return color;
 }
 
-half SpecularStrengthMobile(Surface surface, float smoothness, float3 lightDirection) {
+half SpecularStrengthMobile(Surface surface, half smoothness, half3 lightDirection) {
     // Convert smoothness to roughness
-    const float roughness = 1.0 - smoothness;
+    const half roughness = 1.0 - smoothness;
 
-    const float3 h = SafeNormalize(lightDirection + surface.viewDirection);
-    const float nh2 = Square(saturate(dot(surface.normal, h)));
-    const float lh2 = Square(saturate(dot(lightDirection, h)));
-    const float r2 = Square(roughness); // Use roughness for the calculation
-    const float d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
-    const float normalization = roughness * 4.0 + 2.0; // Adjust based on roughness
-    const float ndotl = saturate(dot(surface.normal, lightDirection));
-    const float linearFalloff = 1.0 - ndotl;
+    const half3 h = SafeNormalize(lightDirection + surface.viewDirection);
+    const half nh2 = Square(saturate(dot(surface.normal, h)));
+    const half lh2 = Square(saturate(dot(lightDirection, h)));
+    const half r2 = Square(roughness); // Use roughness for the calculation
+    const half d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
+    const half normalization = roughness * 4.0 + 2.0; // Adjust based on roughness
+    const half nDotL = saturate(dot(surface.normal, lightDirection));
+    const half linearFalloff = 1.0 - nDotL;
     return r2 / (d2 * max(0.1, lh2) * normalization) * linearFalloff;
 }
 //Mobile
 half GetSmoothnessPower(float smoothness) {
     return exp2(10 * smoothness + 1);
 }
+
 //
 // half GetSpecularDot (Surface surface, float3 lightDirection) {
 //     return saturate(dot(surface.normal, normalize(surface.viewDirection + lightDirection)));
 // }
 
-half3 MobileLightingHandler (Surface surface, Light light) {
-    const half lightIntensity = dot(light.color, grayscaleConversion);
+half4 MobileLightingHandler (Surface surface, Light light) {
+    //const half lightIntensity = dot(light.color, grayscaleConversion);
+    half attenuation = light.attenuation;
+    half nDotL = max(0,dot(surface.normal, light.direction));
 
-    const half3 radiance = light.color * light.attenuation;
-    //const half3 diffuse = IncomingLight(surface, light);
-    const half3 diffuse = saturate(dot(surface.normal, light.direction));
+    #if defined(_HALF_LAMBERT)
+    nDotL = Square(nDotL * .5 + .5);
+    #endif
     
-    const half diffuseGray = dot(diffuse, grayscaleConversion);
+    half3 radiance = light.color * attenuation;
 
+    //radiance *= attenuation;
+    
     //Blinn Phong
     //const half specularDot = GetSpecularDot(surface, light.direction);
     //const half specular = pow(specularDot, GetSmoothnessPower(surface.smoothness)) * diffuseGray * surface.specularPower;
 
     //GGX
     const half specularStrength = SpecularStrengthMobile(surface, surface.smoothness, light.direction);
-    const half specular = specularStrength * diffuseGray * surface.specularPower;
     
-    half3 metalColor = surface.color * radiance * (diffuse + specular);
-
-    half3 color = metalColor;
-
+    const half specular = specularStrength * nDotL * surface.specularPower;
+    
+    half4 color = half4(surface.color * radiance * (nDotL + specular),1);
+    
     #ifdef _MATCAP_ON
-    const half nDotV = dot(surface.normal, light.direction); // Use half-Lambert term for matcap blending
-    const half matcapInfluence = lerp(0, 1, surface.metallic * nDotV); // Blend factor based on metallic and light angle
-    half3 matcapColor = surface.matcap * surface.color * lightIntensity;
-    matcapColor = lerp(half3(0, 0, 0), matcapColor, matcapInfluence);
-
-    #if defined(SHADOWS_ENABLED)
-    metalColor *= light.attenuation + 0.2;
+    // const half matCapInfluence = lerp(0, 1, surface.metallic * nDotL);
+    // matCapColor.rgb = lerp(half3(0, 0, 0), surface.matcap * surface.color * lightIntensity, matCapInfluence);
+    // color = lerp(color, matCapColor, matCapInfluence);
     #endif
-
-    color = lerp(color, matcapColor, matcapInfluence);
+    
+    #if defined(SHADOWS_ENABLED)
+    color.a = attenuation;
     #endif
     
     return color;
@@ -92,26 +93,45 @@ half3 GetMobileLighting (Surface surface, GI gi) {
     const ShadowData shadowData = GetShadowData(surface);
     #endif
     
-    half3 radiance = gi.diffuse * surface.color;
+    half4 radiance = half4(gi.diffuse * surface.color,1);
 
     const int directionalLightCount = GetDirectionalLightCount();
     for (int i = 0; i < directionalLightCount; i++) {
         #if defined(SHADOWS_ENABLED)
-        const Light light = GetDirectionalLight(i, surface, shadowData);
+        Light light = GetDirectionalLight(i, surface, shadowData);
         #else
-        const Light light = GetDirectionalLight(i);
+        Light light = GetDirectionalLight(i);
+        #endif
+        #if defined(_HALF_LAMBERT)
+        light.attenuation += .2;
         #endif
         radiance += MobileLightingHandler(surface, light);
     }
-
+    
     const int otherLightCount = GetOtherLightCount();
     for (int j = 0; j < otherLightCount; j++) {
         Light light = GetOtherLight(j, surface);
         radiance += MobileLightingHandler(surface, light);
     }
+
+    const half diffuseGray = saturate(dot(radiance.rgb, grayscaleConversion) * 5);
     
-    return radiance;
+    #ifdef _MATCAP_ON
+    const half3 metal = lerp(0, surface.matcap * surface.color, surface.metallic * (radiance.a + .1));
+    radiance.rgb += lerp(0,metal, surface.metallic * .5 * diffuseGray);
+    #endif
+    
+    return radiance.rgb;
 }
+
+
+
+
+
+
+
+
+
 
 //Cheaper Vertex Lighting
 half3 MobileLightingHandlerVertex (Surface surface, Light light, float specular) {
@@ -129,7 +149,7 @@ half3 GetMobileLightingVertex(Surface surface, float specular, GI gi) {
     const ShadowData shadowData = GetShadowData(surface);
     #endif
     
-    half3 radiance = gi.diffuse * surface.color;
+    half3 radiance = half3(gi.diffuse * surface.color);
     
     for (int i = 0; i < GetDirectionalLightCount(); i++) {
         #if defined(SHADOWS_ENABLED)
