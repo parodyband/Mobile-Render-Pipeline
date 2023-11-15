@@ -61,6 +61,12 @@ real2 ScreenSpaceUV(real2 PositionCSXY) {
     real2 screenUV = PositionCSXY;
     screenUV.x /= _ScreenParams.x;
     screenUV.y /= _ScreenParams.y;
+    //Flip y if needed
+    #if UNITY_UV_STARTS_AT_TOP
+    #else
+    screenUV.y = 1.0 - screenUV.y;
+    #endif
+    
     return screenUV;
 }
 
