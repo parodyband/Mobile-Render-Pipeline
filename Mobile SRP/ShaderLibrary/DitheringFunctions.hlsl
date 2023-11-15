@@ -16,7 +16,7 @@ real BlueNoiseSampler(real2 uv)
     return SAMPLE_TEXTURE2D(_BlueNoiseTextureLLL512, sampler_BlueNoiseTextureLLL512, uv).r;
 }
 
-real BayerDither4x4(real2 position, real brightness) {
+float BayerDither4x4(float2 position, float brightness) {
     const int4x4 bayerMatrix = int4x4( 0,  8,  2, 10,
                                        12,  4, 14,  6,
                                        3, 11,  1,  9,
@@ -24,7 +24,7 @@ real BayerDither4x4(real2 position, real brightness) {
 
     int2 pos = int2(fmod(position.x, 4), fmod(position.y, 4));
 
-    const real ditheredBrightness = brightness * 16.0;
+    const float ditheredBrightness = brightness * 16.0;
     
     if (ditheredBrightness > bayerMatrix[pos.y][pos.x]) {
         return 1.0;
@@ -33,7 +33,7 @@ real BayerDither4x4(real2 position, real brightness) {
     return 0.0;
 }
 
-real BayerDither8x8(real2 position, real brightness) {
+float BayerDither8x8(float2 position, float brightness) {
     const int bayerMatrix[64] = {  0, 32,  8, 40,  2, 34, 10, 42,
                             48, 16, 56, 24, 50, 18, 58, 26,
                             12, 44,  4, 36, 14, 46,  6, 38,
