@@ -23,7 +23,7 @@ real4x4 bayerMatrix = real4x4(
     15,  7, 13,  5
 );
 
-real BayerDither(real2 uv, real4x4 bayerMatrix, real ditherAmount)
+real BayerDither(real2 uv, real ditherAmount)
 {
     // Scale UV to the size of the Bayer matrix
     int2 bayerPos = int2(frac(uv) * 4);
