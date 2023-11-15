@@ -75,8 +75,8 @@ namespace Mobile_SRP.Runtime
             m_Buffer.SetGlobalMatrix("_WorldToViewMatrix", worldToViewMatrix);
             //m_Buffer.SetGlobalMatrix("_ViewToWorldMatrix", worldToViewMatrix.inverse);
             //m_Buffer.SetGlobalVector("_WorldSpaceCameraPos", m_Camera.transform.position);
-            //m_Buffer.SetGlobalVector("_ProjectionParams", GetProjectionParams(m_Camera));
-            //.SetGlobalVector("_ScreenParams", new Vector4(m_Camera.pixelWidth, m_Camera.pixelHeight, 1 / m_Camera.pixelWidth, 1 / m_Camera.pixelHeight));
+            m_Buffer.SetGlobalVector("_ProjectionParams", GetProjectionParams(m_Camera));
+            m_Buffer.SetGlobalVector("_ScreenParams", new Vector4(m_Camera.pixelWidth, m_Camera.pixelHeight, 1 / m_Camera.pixelWidth, 1 / m_Camera.pixelHeight));
             var flags = m_Camera.clearFlags;
             m_Buffer.ClearRenderTarget(
                 flags <= CameraClearFlags.Depth,

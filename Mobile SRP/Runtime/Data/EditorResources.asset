@@ -17,3 +17,4 @@ MonoBehaviour:
     ParticleLit: {fileID: 2100000, guid: 97e387c65138aa54aa28f3c96dd7c357, type: 2}
     TerrainLit: {fileID: 2100000, guid: 97e387c65138aa54aa28f3c96dd7c357, type: 2}
     Decal: {fileID: 2100000, guid: 97e387c65138aa54aa28f3c96dd7c357, type: 2}
+    BlueNoiseRGB512: {fileID: 2800000, guid: ffebb943665752e4f9faa1577871b74f, type: 3}

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 #if UNITY_EDITOR
@@ -14,6 +15,11 @@ namespace Mobile_SRP.Runtime
     {
         [SerializeField] private bool useDynamicBatching = true, useGPUInstancing = true, useSrpBatcher = true;
         [SerializeField] private ShadowSettings shadows;
+        [Header("Shader Resources")]
+        private Noise m_Noise;
+        
+        private static readonly int BlueNoiseTextureRGB512 = Shader.PropertyToID("_BlueNoiseTextureRGB512");
+
         protected override RenderPipeline CreatePipeline()
         {
             if (shadows.enableShadows)
@@ -24,6 +30,9 @@ namespace Mobile_SRP.Runtime
             {
                 Shader.DisableKeyword("SHADOWS_ENABLED");
             }
+            m_Noise.BlueNoiseRGB512 = Resources.Load<Texture2D>("Noises/Blue Noise 512/LDR_RGB1_0");
+            Shader.SetGlobalTexture(BlueNoiseTextureRGB512, m_Noise.BlueNoiseRGB512);
+            
             return new MobileRenderPipeline(
                 useDynamicBatching, useGPUInstancing, useSrpBatcher, shadows
             );
@@ -33,6 +42,8 @@ namespace Mobile_SRP.Runtime
         private const string EditorResourcesGuid = "443ba509e96a03d45bdd512b76acea5f";
         [SerializeField] [HideInInspector]
         private MobileRenderPipelineEditorResources editorResourcesAsset;
+
+
         private MobileRenderPipelineEditorResources EditorResources
         {
             get
@@ -76,5 +87,11 @@ namespace Mobile_SRP.Runtime
             return null;
 #endif
         }
+    }
+
+    [Serializable]
+    public class Noise
+    {
+        public Texture2D BlueNoiseRGB512;
     }
 }
