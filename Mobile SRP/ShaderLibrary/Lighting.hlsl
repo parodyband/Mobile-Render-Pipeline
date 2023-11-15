@@ -126,19 +126,12 @@ half3 GetMobileLighting (Surface surface, GI gi) {
 
 
 
-
-
-
-
-
-
-
 //Cheaper Vertex Lighting
-half3 MobileLightingHandlerVertex (Surface surface, Light light, float specular) {
+half3 MobileLightingHandlerVertex (Surface surface, Light light) {
     
     const half3 diffuse = IncomingLight(surface, light);
     
-    half3 color = surface.color * (diffuse + specular);
+    half3 color = surface.color * diffuse;
     
     return color;
 }
@@ -158,13 +151,15 @@ half3 GetMobileLightingVertex(Surface surface, float specular, GI gi) {
         const Light light = GetDirectionalLight(i);
         #endif
         
-        radiance += MobileLightingHandlerVertex(surface, light, specular);
+        radiance += MobileLightingHandlerVertex(surface, light);
     }
 
     for (int j = 0; j < GetOtherLightCount(); j++) {
         Light light = GetOtherLight(j, surface);
-        radiance += MobileLightingHandlerVertex(surface, light, specular);
+        radiance += MobileLightingHandlerVertex(surface, light);
     }
+
+    radiance += specular;
     
     return radiance;
 }

@@ -48,15 +48,18 @@ Varyings LitPassVertex (Attributes input) {
 	output.baseUV = input.baseUV * baseST.xy + baseST.zw;
 
 	#ifdef _VERTEX_LIGHTING_ON
-	// Compute the half-vector and specular power only if vertex lighting is enabled
-	const float3 viewDir = normalize(_WorldSpaceCameraPos - output.positionWS);
-	const float3 lightDir = normalize(GetDirectionalLight(0).direction.xyz); // Assuming a single directional light for simplicity
-	const float3 halfVector = normalize(viewDir + lightDir);
 
-	// Compute the specular power based on the smoothness
-	const half smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
-	const half extraSpecularPower = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SpecularPower);
-	output.specularPower = pow(saturate(dot(output.normalWS, halfVector)), GetSmoothnessPower(smoothness)) * extraSpecularPower;
+	// Light light = GetDirectionalLight(0);
+	// // Compute the half-vector and specular power only if vertex lighting is enabled
+	// const float3 viewDir = SafeNormalize(_WorldSpaceCameraPos - output.positionWS);
+	// const float3 lightDir = SafeNormalize(light.direction.xyz); // Assuming a single directional light for simplicity
+	// const float3 halfVector = SafeNormalize(viewDir + lightDir);
+	//
+	// // Compute the specular power based on the smoothness
+	// const half smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
+	// const half extraSpecularPower = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SpecularPower);
+	// output.specularPower = pow(saturate(dot(output.normalWS, halfVector)), GetSmoothnessPower(smoothness)) * extraSpecularPower;
+	output.specularPower = 0;
 	#else
 	output.specularPower = 0.0;
 	#endif
