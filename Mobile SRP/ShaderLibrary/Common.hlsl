@@ -57,4 +57,11 @@ real4 remap(real4 origFrom, real4 origTo, real4 targetFrom, real4 targetTo, real
     return lerp(targetFrom, targetTo, rel);
 }
 
+real2 ScreenSpaceUV(real2 PositionCSXY) {
+    real2 screenUV = PositionCSXY;
+    screenUV.x /= _ScreenParams.x;
+    screenUV.y /= _ScreenParams.y;
+    return screenUV;
+}
+
 #endif

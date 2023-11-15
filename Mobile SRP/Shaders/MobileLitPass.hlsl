@@ -59,7 +59,7 @@ Varyings LitPassVertex (Attributes input) {
 	// const half smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
 	// const half extraSpecularPower = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SpecularPower);
 	// output.specularPower = pow(saturate(dot(output.normalWS, halfVector)), GetSmoothnessPower(smoothness)) * extraSpecularPower;
-	output.specularPower = 0;
+	//output.specularPower = 0;
 	#else
 	output.specularPower = 0.0;
 	#endif

@@ -73,6 +73,10 @@ namespace Mobile_SRP.Runtime
             m_Context.SetupCameraProperties(m_Camera);
             var worldToViewMatrix = m_Camera.worldToCameraMatrix;
             m_Buffer.SetGlobalMatrix("_WorldToViewMatrix", worldToViewMatrix);
+            //m_Buffer.SetGlobalMatrix("_ViewToWorldMatrix", worldToViewMatrix.inverse);
+            //m_Buffer.SetGlobalVector("_WorldSpaceCameraPos", m_Camera.transform.position);
+            //m_Buffer.SetGlobalVector("_ProjectionParams", GetProjectionParams(m_Camera));
+            //.SetGlobalVector("_ScreenParams", new Vector4(m_Camera.pixelWidth, m_Camera.pixelHeight, 1 / m_Camera.pixelWidth, 1 / m_Camera.pixelHeight));
             var flags = m_Camera.clearFlags;
             m_Buffer.ClearRenderTarget(
                 flags <= CameraClearFlags.Depth,
@@ -81,6 +85,16 @@ namespace Mobile_SRP.Runtime
             );
             m_Buffer.BeginSample(SampleName);
             ExecuteBuffer();
+        }
+
+        private Vector4 GetProjectionParams(Camera camera)
+        {
+            var p = camera.projectionMatrix;
+            var f = camera.nearClipPlane;
+            var n = camera.farClipPlane;
+            var a = p[2, 2];
+            var b = p[3, 2];
+            return new Vector4(-1 / (a * f + b), 1 / (a * n + b), -a / (a * n + b), a / (a * f + b));
         }
 
         private void Submit()
