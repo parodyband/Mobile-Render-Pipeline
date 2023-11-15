@@ -116,7 +116,9 @@ public class CustomShaderGUI : ShaderGUI {
 		EditorGUI.BeginChangeCheck();
 		editor.LightmapEmissionProperty();
 		if (EditorGUI.EndChangeCheck()) {
-			foreach (Material m in editor.targets) {
+			foreach (Material m in editor.targets)
+			{
+				Debug.Log("Emission changed");
 				m.globalIlluminationFlags &=
 					~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
 			}
