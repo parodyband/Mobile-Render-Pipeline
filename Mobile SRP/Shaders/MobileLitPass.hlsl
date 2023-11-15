@@ -97,7 +97,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.alpha = base.a;
 	surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic) * maskMap.b;
 	surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness) * maskMap.g;
-	surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+	//surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 	
 	#ifdef _MATCAP_ON
 	float3 normal_view_space = normalize(mul(surface.normal, (float3x3)_WorldToViewMatrix));
