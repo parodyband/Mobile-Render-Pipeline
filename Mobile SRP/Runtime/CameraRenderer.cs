@@ -121,8 +121,7 @@ namespace Mobile_SRP.Runtime
             {
                 enableDynamicBatching = useDynamicBatching,
                 enableInstancing = useGPUInstancing,
-                perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.ShadowMask |
-                                PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume
+                perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
             };
 
             drawingSettings.SetShaderPassName(1, LitShaderTagId);

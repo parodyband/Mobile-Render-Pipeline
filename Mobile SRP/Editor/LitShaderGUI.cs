@@ -61,6 +61,8 @@ public class CustomShaderGUI : ShaderGUI {
 		editor = materialEditor;
 		materials = materialEditor.targets;
 		this.properties = properties;
+		
+		BakedEmission();
 
 		EditorGUILayout.Space();
 		showPresets = EditorGUILayout.Foldout(showPresets, "Presets", true);
@@ -110,7 +112,18 @@ public class CustomShaderGUI : ShaderGUI {
 			RenderQueue = RenderQueue.Transparent;
 		}
 	}
-
+	void BakedEmission () {
+		EditorGUI.BeginChangeCheck();
+		editor.LightmapEmissionProperty();
+		if (EditorGUI.EndChangeCheck()) {
+			foreach (var o in editor.targets)
+			{
+				var m = (Material)o;
+				m.globalIlluminationFlags &=
+					~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+			}
+		}
+	}
 	void TransparentPreset () {
 		if (HasPremultiplyAlpha && PresetButton("Transparent")) {
 			Clipping = false;

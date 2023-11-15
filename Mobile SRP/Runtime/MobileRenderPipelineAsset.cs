@@ -38,6 +38,7 @@ namespace Mobile_SRP.Runtime
             
             Shader.SetGlobalTexture(BlueNoiseTextureRGB512, noise.blueNoiseRGB512);
             Shader.SetGlobalTexture(BlueNoiseTextureLll512, noise.blueNoiseLll512);
+            
             return new MobileRenderPipeline(
                 useDynamicBatching, useGPUInstancing, useSrpBatcher, shadows
             );
