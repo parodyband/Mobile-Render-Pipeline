@@ -13,7 +13,7 @@ struct Surface {
     float occlusion;
     float smoothness;
     //float fresnelStrength;
-    //float dither;
+    float dither;
     float specularPower;
     uint renderingLayerMask;
     #ifdef _MATCAP_ON

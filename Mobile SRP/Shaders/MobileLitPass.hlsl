@@ -7,6 +7,7 @@
 #include "../ShaderLibrary/BRDF.hlsl"
 #include "../ShaderLibrary/GI.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
+#include "../ShaderLibrary/DitheringFunctions.hlsl"
 
 struct Attributes {
 	half3 positionOS : POSITION;
@@ -97,7 +98,8 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.alpha = base.a;
 	surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic) * maskMap.b;
 	surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness) * maskMap.g;
-	//surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+	const float2 ditherUV = ScreenSpaceUV(input.positionCS) * _ScreenParams.xy / 512.;
+	surface.dither = BlueNoiseSampler(ditherUV);
 	
 	#ifdef _MATCAP_ON
 	float3 normal_view_space = normalize(mul(surface.normal, (float3x3)_WorldToViewMatrix));

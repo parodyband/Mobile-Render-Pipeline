@@ -7,6 +7,7 @@
 #include "../ShaderLibrary/BRDF.hlsl"
 #include "../ShaderLibrary/GI.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
+#include "../ShaderLibrary/DitheringFunctions.hlsl"
 
 struct Attributes {
 	float3 positionOS : POSITION;
@@ -43,6 +44,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(input.baseUV));
 	#endif
+
 	
 	Surface surface;
 	surface.position = input.positionWS;
@@ -53,7 +55,10 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.alpha = base.a;
 	surface.metallic = GetMetallic(input.baseUV);
 	surface.smoothness = GetSmoothness(input.baseUV);
-	//surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+	
+	const float2 ditherUV = ScreenSpaceUV(input.positionCS) * _ScreenParams.xy / 512.;
+	surface.dither = BlueNoiseSampler(ditherUV);
+	
 	#if defined(_PREMULTIPLY_ALPHA)
 		BRDF brdf = GetBRDF(surface, true);
 	#else
