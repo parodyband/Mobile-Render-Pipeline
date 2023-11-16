@@ -6,14 +6,19 @@ SAMPLER(sampler_BlueNoiseTextureRGB512);
 TEXTURE2D(_BlueNoiseTextureLLL512);
 SAMPLER(sampler_BlueNoiseTextureLLL512);
 
-real3 BlueNoiseSamplerRGB(real2 uv)
+float3 BlueNoiseSamplerRGB(float2 uv)
 {
     return SAMPLE_TEXTURE2D(_BlueNoiseTextureRGB512, sampler_BlueNoiseTextureRGB512, uv).r;
 }
 
-real BlueNoiseSampler(real2 uv)
+float BlueNoiseSampler(float2 uv)
 {
     return SAMPLE_TEXTURE2D(_BlueNoiseTextureLLL512, sampler_BlueNoiseTextureLLL512, uv).r;
+}
+
+float WhiteNoiseSampler(float2 uv)
+{
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
 }
 
 float BayerDither4x4(float2 position, float brightness) {
@@ -52,8 +57,5 @@ float BayerDither8x8(float2 position, float brightness) {
     }
     return 0.0;
 }
-
-
-
 
 #endif
