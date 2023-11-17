@@ -13,6 +13,8 @@ namespace Mobile_SRP.Runtime
         private static readonly ShaderTagId UnlitShaderTagId = new("SRPDefaultUnlit");
 
         private static readonly ShaderTagId LitShaderTagId = new("DefaultLit");
+        
+        private static readonly ShaderTagId TimeShaderTagId = new("Time");
 
         private CullingResults m_CullingResults;
 
@@ -29,12 +31,15 @@ namespace Mobile_SRP.Runtime
             m_Context = context;
             m_Camera = camera;
 
+            m_Buffer.SetGlobalFloat("_Time", Time.time);
+            
             PrepareBuffer();
             PrepareForSceneWindow();
 
             if (!Cull(shadowSettings.maxDistance)) return;
 
             m_Buffer.BeginSample(SampleName);
+            
 
             m_Lighting.Setup(context, m_CullingResults, shadowSettings);
 
