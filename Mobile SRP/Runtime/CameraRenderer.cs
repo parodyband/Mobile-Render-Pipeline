@@ -31,7 +31,7 @@ namespace Mobile_SRP.Runtime
             m_Context = context;
             m_Camera = camera;
 
-            m_Buffer.SetGlobalFloat("_Time", Time.time);
+            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime,Time.time));
             
             PrepareBuffer();
             PrepareForSceneWindow();

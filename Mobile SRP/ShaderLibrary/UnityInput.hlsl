@@ -37,4 +37,6 @@ float4 _ScreenParams;
 float4 _ProjectionParams;
 float4x4 _WorldToViewMatrix;
 
+float2 _Time;
+
 #endif
