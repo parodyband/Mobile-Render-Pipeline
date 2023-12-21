@@ -12,7 +12,7 @@ struct Surface {
     float metallic;
     float occlusion;
     float smoothness;
-    //float fresnelStrength;
+    float fresnelStrength;
     float dither;
     float specularPower;
     uint renderingLayerMask;

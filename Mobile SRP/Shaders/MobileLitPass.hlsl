@@ -82,7 +82,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 
 	Surface surface;
 	surface.position = input.positionWS;
-	InputConfig config = GetInputConfig(input.baseUV);
+	const InputConfig config = GetInputConfig(input.baseUV);
 	#if defined(_NORMAL_MAP)
 	surface.normal = NormalTangentToWorld(
 		GetNormalTS(config), input.normalWS, input.tangentWS
@@ -95,9 +95,11 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
 	surface.depth = -TransformWorldToView(input.positionWS).z;
 	surface.color = base.rgb;
+	surface.occlusion = GetOcclusion(input.baseUV);
 	surface.alpha = base.a;
+	surface.fresnelStrength = GetFresnel(input.baseUV);
 	surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic) * maskMap.b;
-	surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness) * maskMap.g;
+	surface.smoothness = GetSmoothness(input.baseUV) * maskMap.g;
 	const float2 ditherUV = ScreenSpaceUV(input.positionCS) * _ScreenParams.xy / 512.;
 	surface.dither = BlueNoiseSampler(ditherUV);
 	
@@ -108,12 +110,15 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	#endif
 
 	#ifdef _VERTEX_LIGHTING_ON
-	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface);
-	half3 color = GetMobileLightingVertex(surface, input.specularPower,gi);
+	//GI gi = GetGI(GI_FRAGMENT_DATA(input), , surface);
+	//half3 color = GetMobileLightingVertex(surface, input.specularPower,gi);
+	half3 color = surface.color;
 	#else
 	surface.specularPower = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SpecularPower);
-	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface);
-	half3 color = GetMobileLighting(surface,gi);
+	//half3 color = GetMobileLighting(surface,gi);
+	BRDF brdf = GetBRDF(surface);
+	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
+	half3 color = GetLighting(surface,brdf,gi);
 	#endif
 
 	return half4(color + emission, surface.alpha);

@@ -13,7 +13,7 @@ namespace Mobile_SRP.Runtime
     [CreateAssetMenu(menuName = "Rendering/Mobile Render Pipeline")]
     public class MobileRenderPipelineAsset : RenderPipelineAsset
     {
-        [SerializeField] private bool useDynamicBatching = true, useGPUInstancing = true, useSrpBatcher = true;
+        [SerializeField] private bool useDynamicBatching = true, useGPUInstancing = true, useSrpBatcher = true, useLightsPerObject = true;
         [SerializeField] private ShadowSettings shadows;
         //[Header("Shader Resources")]
         [HideInInspector]
@@ -24,15 +24,6 @@ namespace Mobile_SRP.Runtime
 
         protected override RenderPipeline CreatePipeline()
         {
-            if (shadows.enableShadows)
-            {
-                Shader.EnableKeyword("SHADOWS_ENABLED");
-            }
-            else
-            {
-                Shader.DisableKeyword("SHADOWS_ENABLED");
-            }
-            
             noise.blueNoiseRGB512 = Resources.Load<Texture2D>("Noises/Blue Noise 512/LDR_RGB1_0");
             noise.blueNoiseLll512 = Resources.Load<Texture2D>("Noises/Blue Noise 512/LDR_LLL1_0");
             
@@ -40,7 +31,7 @@ namespace Mobile_SRP.Runtime
             Shader.SetGlobalTexture(BlueNoiseTextureLll512, noise.blueNoiseLll512);
             
             return new MobileRenderPipeline(
-                useDynamicBatching, useGPUInstancing, useSrpBatcher, shadows
+                useDynamicBatching, useGPUInstancing, useSrpBatcher, useLightsPerObject, shadows
             );
         }
 #if UNITY_EDITOR

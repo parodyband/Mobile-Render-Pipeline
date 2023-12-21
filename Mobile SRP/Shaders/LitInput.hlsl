@@ -23,6 +23,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
     UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
     UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
     UNITY_DEFINE_INSTANCED_PROP(half, _SpecularPower)
+    UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
 
@@ -72,6 +73,13 @@ float GetSmoothness (half2 baseUV) {
     return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
 }
 
+float GetOcclusion (float2 baseUV) {
+    return SAMPLE_TEXTURE2D(_MaskMap, sampler_BaseMap, baseUV).r;
+}
+
+float GetFresnel (float2 baseUV) {
+    return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fresnel);
+}
 half3 GetMatCap (half2 baseUV) {
     return SAMPLE_TEXTURE2D(_MatCap, sampler_BaseMap, baseUV).rgb;
 }

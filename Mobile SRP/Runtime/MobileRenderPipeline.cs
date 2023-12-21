@@ -12,13 +12,15 @@ namespace Mobile_SRP.Runtime
 
         private readonly bool m_UseDynamicBatching;
         private readonly bool m_UseGPUInstancing;
+        private readonly bool m_UseLightsPerObject;
         private readonly ShadowSettings m_ShadowSettings;
 
-        public MobileRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSrpBatcher, ShadowSettings shadowSettings)
+        public MobileRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSrpBatcher, bool useLightsPerObject, ShadowSettings shadowSettings)
         {
             m_ShadowSettings = shadowSettings;
             m_UseDynamicBatching = useDynamicBatching;
             m_UseGPUInstancing = useGPUInstancing;
+            m_UseLightsPerObject = useLightsPerObject;
             GraphicsSettings.useScriptableRenderPipelineBatching = useSrpBatcher;
             GraphicsSettings.lightsUseLinearIntensity = true;
         }
@@ -32,7 +34,7 @@ namespace Mobile_SRP.Runtime
             for (int i = 0; i < cameras.Count; i++)
             {
                 m_Renderer.Render(
-                    context, cameras[i], m_UseDynamicBatching, m_UseGPUInstancing, m_ShadowSettings
+                    context, cameras[i], m_UseDynamicBatching, m_UseGPUInstancing,m_UseLightsPerObject, m_ShadowSettings
                 );
             }
         }

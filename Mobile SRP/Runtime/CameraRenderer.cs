@@ -13,7 +13,7 @@ namespace Mobile_SRP.Runtime
         private static readonly ShaderTagId UnlitShaderTagId = new("SRPDefaultUnlit");
 
         private static readonly ShaderTagId LitShaderTagId = new("DefaultLit");
-        
+
         private static readonly ShaderTagId TimeShaderTagId = new("Time");
 
         private CullingResults m_CullingResults;
@@ -26,49 +26,39 @@ namespace Mobile_SRP.Runtime
         };
 
         public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching,
-            bool useGPUInstancing, ShadowSettings shadowSettings)
+            bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings)
         {
             m_Context = context;
             m_Camera = camera;
 
-            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime,Time.time));
-            
+            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, Time.time));
+
             PrepareBuffer();
             PrepareForSceneWindow();
 
             if (!Cull(shadowSettings.maxDistance)) return;
 
             m_Buffer.BeginSample(SampleName);
-            
 
-            m_Lighting.Setup(context, m_CullingResults, shadowSettings);
+
+            m_Lighting.Setup(context, m_CullingResults, shadowSettings, useLightsPerObject);
 
             m_Buffer.EndSample(SampleName);
 
             Setup();
-            DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
+            DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
             DrawUnsupportedShaders();
             DrawGizmos();
 
-            if (shadowSettings.enableShadows)
-                m_Lighting.Cleanup();
+            m_Lighting.Cleanup();
 
             Submit();
         }
 
-        private bool Cull (float maxShadowDistance) {
-            if (m_Camera.TryGetCullingParameters(out ScriptableCullingParameters p)) {
-                p.shadowDistance = Mathf.Min(maxShadowDistance, m_Camera.farClipPlane);
-                m_CullingResults = m_Context.Cull(ref p);
-                return true;
-            }
-            return false;
-        }
-
-        private bool Cull()
+        private bool Cull(float maxShadowDistance)
         {
             if (!m_Camera.TryGetCullingParameters(out ScriptableCullingParameters p)) return false;
-            p.shadowDistance = m_Camera.farClipPlane;
+            p.shadowDistance = Mathf.Min(maxShadowDistance, m_Camera.farClipPlane);
             m_CullingResults = m_Context.Cull(ref p);
             return true;
         }
@@ -81,7 +71,9 @@ namespace Mobile_SRP.Runtime
             //m_Buffer.SetGlobalMatrix("_ViewToWorldMatrix", worldToViewMatrix.inverse);
             //m_Buffer.SetGlobalVector("_WorldSpaceCameraPos", m_Camera.transform.position);
             m_Buffer.SetGlobalVector("_ProjectionParams", GetProjectionParams(m_Camera));
-            m_Buffer.SetGlobalVector("_ScreenParams", new Vector4(m_Camera.pixelWidth, m_Camera.pixelHeight, 1 / m_Camera.pixelWidth, 1 / m_Camera.pixelHeight));
+            m_Buffer.SetGlobalVector("_ScreenParams",
+                new Vector4(m_Camera.pixelWidth, m_Camera.pixelHeight, 1 / m_Camera.pixelWidth,
+                    1 / m_Camera.pixelHeight));
             var flags = m_Camera.clearFlags;
             m_Buffer.ClearRenderTarget(
                 flags <= CameraClearFlags.Depth,
@@ -115,25 +107,38 @@ namespace Mobile_SRP.Runtime
             m_Buffer.Clear();
         }
 
-        private void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing)
+        private void DrawVisibleGeometry(
+            bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject
+        )
         {
+            var lightsPerObjectFlags = useLightsPerObject
+                ? PerObjectData.LightData | PerObjectData.LightIndices
+                : PerObjectData.None;
             var sortingSettings = new SortingSettings(m_Camera)
             {
                 criteria = SortingCriteria.CommonOpaque
             };
-
-            var drawingSettings = new DrawingSettings(UnlitShaderTagId, sortingSettings)
+            var drawingSettings = new DrawingSettings(
+                UnlitShaderTagId, sortingSettings
+            )
             {
                 enableDynamicBatching = useDynamicBatching,
                 enableInstancing = useGPUInstancing,
-                perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
+                perObjectData =
+                    PerObjectData.ReflectionProbes |
+                    PerObjectData.Lightmaps | PerObjectData.ShadowMask |
+                    PerObjectData.LightProbe | PerObjectData.OcclusionProbe |
+                    PerObjectData.LightProbeProxyVolume |
+                    PerObjectData.OcclusionProbeProxyVolume |
+                    lightsPerObjectFlags
             };
-
             drawingSettings.SetShaderPassName(1, LitShaderTagId);
 
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
 
-            m_Context.DrawRenderers(m_CullingResults, ref drawingSettings, ref filteringSettings);
+            m_Context.DrawRenderers(
+                m_CullingResults, ref drawingSettings, ref filteringSettings
+            );
 
             m_Context.DrawSkybox(m_Camera);
 
@@ -141,7 +146,9 @@ namespace Mobile_SRP.Runtime
             drawingSettings.sortingSettings = sortingSettings;
             filteringSettings.renderQueueRange = RenderQueueRange.transparent;
 
-            m_Context.DrawRenderers(m_CullingResults, ref drawingSettings, ref filteringSettings);
+            m_Context.DrawRenderers(
+                m_CullingResults, ref drawingSettings, ref filteringSettings
+            );
         }
     }
 }
