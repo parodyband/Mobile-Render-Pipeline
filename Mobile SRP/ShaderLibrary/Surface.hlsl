@@ -16,9 +16,6 @@ struct Surface {
     float dither;
     float specularPower;
     uint renderingLayerMask;
-    #ifdef _MATCAP_ON
-    float3 matcap;
-    #endif
 };
 
 #endif

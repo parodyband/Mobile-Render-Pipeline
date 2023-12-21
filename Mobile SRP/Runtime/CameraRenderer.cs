@@ -25,13 +25,21 @@ namespace Mobile_SRP.Runtime
             name = BufferName
         };
 
+        public float frameTime;
         public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching,
             bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings)
         {
             m_Context = context;
             m_Camera = camera;
+            
+            frameTime = Time.time;
+            
+            if (frameTime > 100)
+            {
+                frameTime = 0;
+            }
 
-            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, Time.time));
+            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, frameTime));
 
             PrepareBuffer();
             PrepareForSceneWindow();
@@ -39,8 +47,7 @@ namespace Mobile_SRP.Runtime
             if (!Cull(shadowSettings.maxDistance)) return;
 
             m_Buffer.BeginSample(SampleName);
-
-
+            
             m_Lighting.Setup(context, m_CullingResults, shadowSettings, useLightsPerObject);
 
             m_Buffer.EndSample(SampleName);

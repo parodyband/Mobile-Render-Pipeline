@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace Mobile_SRP.Runtime
 {
-    public class MobileRenderPipeline : RenderPipeline
+    public partial class MobileRenderPipeline : RenderPipeline
     {
         private ScriptableRenderContext m_Context;
 
@@ -23,6 +23,7 @@ namespace Mobile_SRP.Runtime
             m_UseLightsPerObject = useLightsPerObject;
             GraphicsSettings.useScriptableRenderPipelineBatching = useSrpBatcher;
             GraphicsSettings.lightsUseLinearIntensity = true;
+            InitializeForEditor();
         }
 
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)

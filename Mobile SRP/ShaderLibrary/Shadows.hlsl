@@ -23,22 +23,22 @@ SAMPLER_CMP(SHADOW_SAMPLER);
 
 CBUFFER_START(_CustomShadows)
 	int _CascadeCount;
-	real4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
-	real4 _CascadeData[MAX_CASCADE_COUNT];
-	real4x4 _DirectionalShadowMatrices
+	float4 _CascadeCullingSpheres[MAX_CASCADE_COUNT];
+	float4 _CascadeData[MAX_CASCADE_COUNT];
+	float4x4 _DirectionalShadowMatrices
 		[MAX_SHADOWED_DIRECTIONAL_LIGHT_COUNT * MAX_CASCADE_COUNT];
-	real4 _ShadowAtlasSize;
-	real4 _ShadowDistanceFade;
+	float4 _ShadowAtlasSize;
+	float4 _ShadowDistanceFade;
 CBUFFER_END
 
 struct ShadowMask {
 	bool always;
 	bool distance;
-	real4 shadows;
+	float4 shadows;
 };
 
-real GetBakedShadow (ShadowMask mask, int channel) {
-	real shadow = 1.0;
+float GetBakedShadow (ShadowMask mask, int channel) {
+	float shadow = 1.0;
 	if (mask.always || mask.distance) {
 		if (channel >= 0) {
 			shadow = mask.shadows[channel];
@@ -47,7 +47,7 @@ real GetBakedShadow (ShadowMask mask, int channel) {
 	return shadow;
 }
 
-real GetBakedShadow (ShadowMask mask, int channel, real strength) {
+float GetBakedShadow (ShadowMask mask, int channel, float strength) {
 	if (mask.always || mask.distance) {
 		return lerp(1.0, GetBakedShadow(mask, channel), strength);
 	}
@@ -56,15 +56,15 @@ real GetBakedShadow (ShadowMask mask, int channel, real strength) {
 
 struct ShadowData {
 	int cascadeIndex;
-	real cascadeBlend;
-	real strength;
+	float cascadeBlend;
+	float strength;
 	ShadowMask shadowMask;
 };
 
-real MixBakedAndRealtimeShadows (
-	ShadowData global, real shadow, int shadowMaskChannel, real strength
+float MixBakedAndfloattimeShadows (
+	ShadowData global, float shadow, int shadowMaskChannel, float strength
 ) {
-	real baked = GetBakedShadow(global.shadowMask, shadowMaskChannel);
+	float baked = GetBakedShadow(global.shadowMask, shadowMaskChannel);
 	if (global.shadowMask.always) {
 		shadow = lerp(1.0, shadow, global.strength);
 		shadow = min(baked, shadow);
@@ -77,7 +77,7 @@ real MixBakedAndRealtimeShadows (
 	return lerp(1.0, shadow, strength * global.strength);
 }
 
-real FadedShadowStrength (real distance, real scale, real fade) {
+float FadedShadowStrength (float distance, float scale, float fade) {
 	return saturate((1.0 - distance * scale) * fade);
 }
 
@@ -92,10 +92,10 @@ ShadowData GetShadowData (Surface surfaceWS) {
 	);
 	int i;
 	for (i = 0; i < _CascadeCount; i++) {
-		real4 sphere = _CascadeCullingSpheres[i];
-		real distanceSqr = DistanceSquared(surfaceWS.position, sphere.xyz);
+		float4 sphere = _CascadeCullingSpheres[i];
+		float distanceSqr = DistanceSquared(surfaceWS.position, sphere.xyz);
 		if (distanceSqr < sphere.w) {
-			real fade = FadedShadowStrength(
+			float fade = FadedShadowStrength(
 				distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z
 			);
 			if (i == _CascadeCount - 1) {
@@ -124,28 +124,28 @@ ShadowData GetShadowData (Surface surfaceWS) {
 }
 
 struct DirectionalShadowData {
-	real strength;
+	float strength;
 	int tileIndex;
-	real normalBias;
+	float normalBias;
 	int shadowMaskChannel;
 };
 
-real SampleDirectionalShadowAtlas (real3 positionSTS) {
+float SampleDirectionalShadowAtlas (float3 positionSTS) {
 	return SAMPLE_TEXTURE2D_SHADOW(
 		_DirectionalShadowAtlas, SHADOW_SAMPLER, positionSTS
 	);
 }
 
-real FilterDirectionalShadow (real3 positionSTS) {
+float FilterDirectionalShadow (float3 positionSTS) {
 	#if defined(DIRECTIONAL_FILTER_SETUP)
 		real weights[DIRECTIONAL_FILTER_SAMPLES];
 		real2 positions[DIRECTIONAL_FILTER_SAMPLES];
 		real4 size = _ShadowAtlasSize.yyxx;
 		DIRECTIONAL_FILTER_SETUP(size, positionSTS.xy, weights, positions);
-		real shadow = 0;
+		float shadow = 0;
 		for (int i = 0; i < DIRECTIONAL_FILTER_SAMPLES; i++) {
 			shadow += weights[i] * SampleDirectionalShadowAtlas(
-				real3(positions[i].xy, positionSTS.z)
+				float3(positions[i].xy, positionSTS.z)
 			);
 		}
 		return shadow;
@@ -154,22 +154,22 @@ real FilterDirectionalShadow (real3 positionSTS) {
 	#endif
 }
 
-real GetCascadedShadow (
+float GetCascadedShadow (
 	DirectionalShadowData directional, ShadowData global, Surface surfaceWS
 ) {
-	real3 normalBias = surfaceWS.interpolatedNormal *
+	float3 normalBias = surfaceWS.interpolatedNormal *
 		(directional.normalBias * _CascadeData[global.cascadeIndex].y);
-	real3 positionSTS = mul(
+	float3 positionSTS = mul(
 		_DirectionalShadowMatrices[directional.tileIndex],
-		real4(surfaceWS.position + normalBias, 1.0)
+		float4(surfaceWS.position + normalBias, 1.0)
 	).xyz;
-	real shadow = FilterDirectionalShadow(positionSTS);
+	float shadow = FilterDirectionalShadow(positionSTS);
 	if (global.cascadeBlend < 1.0) {
 		normalBias = surfaceWS.interpolatedNormal *
 			(directional.normalBias * _CascadeData[global.cascadeIndex + 1].y);
 		positionSTS = mul(
 			_DirectionalShadowMatrices[directional.tileIndex + 1],
-			real4(surfaceWS.position + normalBias, 1.0)
+			float4(surfaceWS.position + normalBias, 1.0)
 		).xyz;
 		shadow = lerp(
 			FilterDirectionalShadow(positionSTS), shadow, global.cascadeBlend
@@ -178,14 +178,14 @@ real GetCascadedShadow (
 	return shadow;
 }
 
-real GetDirectionalShadowAttenuation (
+float GetDirectionalShadowAttenuation (
 	DirectionalShadowData directional, ShadowData global, Surface surfaceWS
 ) {
 	#if !defined(_RECEIVE_SHADOWS)
 		return 1.0;
 	#endif
 
-	real shadow;
+	float shadow;
 	if (directional.strength * global.strength <= 0.0) {
 		shadow = GetBakedShadow(
 			global.shadowMask, directional.shadowMaskChannel,
@@ -194,7 +194,7 @@ real GetDirectionalShadowAttenuation (
 	}
 	else {
 		shadow = GetCascadedShadow(directional, global, surfaceWS);
-		shadow = MixBakedAndRealtimeShadows(
+		shadow = MixBakedAndfloattimeShadows(
 			global, shadow, directional.shadowMaskChannel, directional.strength
 		);
 	}
@@ -202,18 +202,18 @@ real GetDirectionalShadowAttenuation (
 }
 
 struct OtherShadowData {
-	real strength;
+	float strength;
 	int shadowMaskChannel;
 };
 
-real GetOtherShadowAttenuation (
+float GetOtherShadowAttenuation (
 	OtherShadowData other, ShadowData global, Surface surfaceWS
 ) {
 	#if !defined(_RECEIVE_SHADOWS)
 		return 1.0;
 	#endif
 	
-	real shadow;
+	float shadow;
 	if (other.strength > 0.0) {
 		shadow = GetBakedShadow(
 			global.shadowMask, other.shadowMaskChannel, other.strength
