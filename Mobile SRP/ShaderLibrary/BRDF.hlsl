@@ -16,6 +16,10 @@ float OneMinusReflectivity (float metallic) {
     return range - metallic * range;
 }
 
+float srgbToLinear (float srgb) {
+    return clamp(srgb <= 0.04045 ? srgb / 12.92 : pow((srgb + 0.055) / 1.055, 2.4),.05,.95);
+}
+
 BRDF GetBRDF (Surface surface, bool applyAlphaToDiffuse = false) {
     BRDF brdf;
     float oneMinusReflectivity = OneMinusReflectivity(surface.metallic);
@@ -27,7 +31,7 @@ BRDF GetBRDF (Surface surface, bool applyAlphaToDiffuse = false) {
     brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);
 
     brdf.perceptualRoughness =
-        PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
+        PerceptualSmoothnessToPerceptualRoughness(srgbToLinear(surface.smoothness));
     brdf.roughness = PerceptualRoughnessToRoughness(brdf.perceptualRoughness);
 	
     brdf.fresnel = saturate(surface.smoothness + 1.0 - oneMinusReflectivity);

@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _NORMAL_MAP
+  - _RECEIVE_SHADOWS
   m_InvalidKeywords:
   - _SHADOWS_ON
   m_LightmapFlags: 0
@@ -62,9 +63,9 @@ Material:
     - _NormalMapToggle: 1
     - _NormalScale: 1
     - _PremulAlpha: 0
-    - _ReceiveShadows: 0
+    - _ReceiveShadows: 1
     - _Shadows: 0
-    - _Smoothness: 0.844
+    - _Smoothness: 0.753
     - _SpecularPower: 1
     - _SrcBlend: 1
     - _VertexLighting: 0
