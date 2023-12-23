@@ -44,11 +44,11 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(input.baseUV));
 	#endif
-
 	
 	Surface surface;
 	surface.position = input.positionWS;
 	surface.normal = normalize(input.normalWS);
+	surface.interpolatedNormal = input.normalWS;
 	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
 	surface.depth = -TransformWorldToView(input.positionWS).z;
 	surface.color = base.rgb;
@@ -57,7 +57,6 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.smoothness = GetSmoothness(input.baseUV);
 	surface.occlusion = GetOcclusion(input.baseUV);
 	surface.fresnelStrength = GetFresnel(input.baseUV);
-	
 	const float2 ditherUV = ScreenSpaceUV(input.positionCS) * _ScreenParams.xy / 512.;
 	surface.dither = BlueNoiseSampler(ditherUV);
 	

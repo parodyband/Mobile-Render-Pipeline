@@ -2,23 +2,23 @@
 #define CUSTOM_BRDF_INCLUDED
 
 struct BRDF {
-    float3 diffuse;
-    float3 specular;
-    float roughness;
-    float perceptualRoughness;
-    float fresnel;
+    real3 diffuse;
+    real3 specular;
+    real roughness;
+    real perceptualRoughness;
+    real fresnel;
 };
 
 #define MIN_REFLECTIVITY 0.04
 
-float OneMinusReflectivity (float metallic) {
-    const float range = 1.0 - MIN_REFLECTIVITY;
+real OneMinusReflectivity (real metallic) {
+    const real range = 1.0 - MIN_REFLECTIVITY;
     return range - metallic * range;
 }
 
 BRDF GetBRDF (Surface surface, bool applyAlphaToDiffuse = false) {
     BRDF brdf;
-    float oneMinusReflectivity = OneMinusReflectivity(surface.metallic);
+    const real oneMinusReflectivity = OneMinusReflectivity(surface.metallic);
 
     brdf.diffuse = surface.color * oneMinusReflectivity;
     if (applyAlphaToDiffuse) {
@@ -33,26 +33,41 @@ BRDF GetBRDF (Surface surface, bool applyAlphaToDiffuse = false) {
     return brdf;
 }
 
-float SpecularStrength (Surface surface, BRDF brdf, Light light) {
-    const float3 h = SafeNormalize(light.direction + surface.viewDirection);
-    const float nh2 = Square(saturate(dot(surface.normal, h)));
-    const float lh2 = Square(saturate(dot(light.direction, h)));
-    const float r2 = Square(brdf.roughness);
-    const float d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
-    const float normalization = brdf.roughness * 4.0 + 2.0;
-    return r2 / (d2 * max(0.1, lh2) * normalization);
+//Actual Specular Strength
+
+// real SpecularStrength (Surface surface, BRDF brdf, Light light) {
+//     const real3 h = SafeNormalize(light.direction + surface.viewDirection);
+//     const real nh2 = Square(saturate(dot(surface.normal, h)));
+//     const real lh2 = Square(saturate(dot(light.direction, h)));
+//     const real r2 = Square(brdf.roughness);
+//     const real d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
+//     const real normalization = brdf.roughness * 4.0 + 2.0;
+//     return r2 / (d2 * max(0.1, lh2) * normalization);
+// }
+
+//Fake Mobile Strength
+real SpecularStrength(Surface surface, BRDF brdf, Light light) {
+    // Calculate the halfway vector
+    const real3 h = SafeNormalize(light.direction + surface.viewDirection);
+    const real nh = max(dot(surface.normal, h), 0.0);
+
+    // Map roughness to specular power
+    const real specularPower = 1.0 / max(Square(brdf.roughness), 0.001);
+    // Calculate the final specular strength
+    return pow(nh, specularPower) * 35 * saturate(1.0 - brdf.roughness * 3);
 }
 
-float3 DirectBRDF (Surface surface, BRDF brdf, Light light) {
+
+real3 DirectBRDF (Surface surface, BRDF brdf, Light light) {
     return SpecularStrength(surface, brdf, light) * brdf.specular + brdf.diffuse;
 }
 
-float3 IndirectBRDF (
-    Surface surface, BRDF brdf, float3 diffuse, float3 specular
+real3 IndirectBRDF (
+    Surface surface, BRDF brdf, real3 diffuse, real3 specular
 ) {
-    float fresnelStrength = surface.fresnelStrength *
+    real fresnelStrength = surface.fresnelStrength *
         Pow4(1.0 - saturate(dot(surface.normal, surface.viewDirection)));
-    float3 reflection =
+    real3 reflection =
         specular * lerp(brdf.specular, brdf.fresnel, fresnelStrength);
     reflection /= brdf.roughness * brdf.roughness + 1.0;
 	
