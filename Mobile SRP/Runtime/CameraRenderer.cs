@@ -32,7 +32,7 @@ namespace Mobile_SRP.Runtime
             m_Context = context;
             m_Camera = camera;
             
-            FrameTime += Time.time;
+            FrameTime += Time.deltaTime;
             
             if (FrameTime > 100)
             {
@@ -40,7 +40,7 @@ namespace Mobile_SRP.Runtime
             }
 
             m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, FrameTime));
-
+            //Debug.Log(FrameTime);
             PrepareBuffer();
             PrepareForSceneWindow();
 
