@@ -25,21 +25,21 @@ namespace Mobile_SRP.Runtime
             name = BufferName
         };
 
-        public float frameTime;
+        public float FrameTime = 0;
         public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching,
             bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings)
         {
             m_Context = context;
             m_Camera = camera;
             
-            frameTime = Time.time;
+            FrameTime += Time.time;
             
-            if (frameTime > 100)
+            if (FrameTime > 100)
             {
-                frameTime = 0;
+                FrameTime = 0;
             }
 
-            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, frameTime));
+            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, FrameTime));
 
             PrepareBuffer();
             PrepareForSceneWindow();
