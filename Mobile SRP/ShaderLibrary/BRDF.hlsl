@@ -54,7 +54,7 @@ real SpecularStrength(Surface surface, BRDF brdf, Light light) {
     // Map roughness to specular power
     const real specularPower = 1.0 / max(Square(brdf.roughness), 0.001);
     // Calculate the final specular strength
-    return pow(nh, specularPower) * 20 * saturate(1.0 - brdf.roughness * 1.5);
+    return pow(nh, specularPower) * 15 * saturate(1.0 - brdf.roughness * 1.5);
 }
 
 
