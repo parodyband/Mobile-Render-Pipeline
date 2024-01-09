@@ -161,6 +161,33 @@ float4 CopyPassFragment (Varyings input) : SV_TARGET {
 	return GetSource(input.screenUV);
 }
 
+float _SharpenStrength;
+
+float4 SharpenPassFragment(Varyings input) : SV_TARGET {
+	const float2 texelSize = GetSourceTexelSize().xy;
+	// Sharpen kernel
+	const float3x3 sharpenKernel = float3x3(-1, -1, -1,
+											-1, 9, -1,
+											-1, -1, -1);
+
+	float3 color = 0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			const float2 offset = float2(x, y) * texelSize;
+			color += GetSource(input.screenUV + offset).rgb * sharpenKernel[y + 1][x + 1];
+		}
+	}
+
+	// Get the original color
+	const float3 originalColor = GetSource(input.screenUV).rgb;
+
+	// Lerp between the original color and the sharpened color based on _SharpenStrength
+	color = lerp(originalColor, color, _SharpenStrength);
+
+	return float4(color, 1.0);
+}
+
+
 float4 _ColorAdjustments;
 float4 _ColorFilter;
 float4 _WhiteBalance;
@@ -247,12 +274,78 @@ float3 ColorGrade (float3 color, bool useACES = false) {
 	return max(useACES ? ACEScg_to_ACES(color) : color, 0.0);
 }
 
+// Vignette parameters: x = intensity, y = smoothness, z/w = inner/outer radius
+float4 _VignetteParams; 
+float3 _VignetteColor;
+
+// Calculate the vignette effect
+float Vignette(float2 screenUV, float4 vignetteParams) {
+	// Transform screenUV to [-1, 1] range
+	const float2 uv = screenUV * 2.0 - 1.0;
+
+	// Calculate distance from the center of the screen
+	const float dist = length(uv);
+
+	// Map the distance to [0, 1] based on inner and outer radius
+	const float innerRadius = vignetteParams.z;
+	const float outerRadius = vignetteParams.w;
+	const float vignetteEffect = smoothstep(innerRadius, outerRadius, dist);
+
+	// Apply intensity and smoothness
+	const float intensity = vignetteParams.x;
+	const float smoothness = vignetteParams.y;
+	return 1.0 - smoothstep(0.0, smoothness, vignetteEffect * intensity);
+}
+
+// Apply the vignette effect to the fragment
+float4 VignettePassFragment(Varyings input) : SV_TARGET {
+	const float2 screenUV = input.screenUV;
+	float3 color = GetSource(screenUV).rgb;
+	const float3 vignetteColor = _VignetteColor.rgb;
+
+	// Calculate vignette value
+	const float vignette = Vignette(screenUV, _VignetteParams);
+
+	// Apply the vignette effect by blending with the vignette color
+	color = lerp(color, vignetteColor, vignette);
+	return float4(color, 1.0);
+}
+
+
+float _ChromaticAberrationStrength;
+float4 _ChromaticAberrationParams; // x = inner radius, y = outer radius
+
+float4 ChromaticAberrationPassFragment(Varyings input) : SV_TARGET {
+	const float2 texelSize = GetSourceTexelSize().xy;
+	const float2 screenUV = input.screenUV;
+	const float2 uv = screenUV * 2.0 - 1.0; // Convert UV to [-1, 1] range
+
+	// Calculate distance from the center for vignette-like effect
+	const float dist = length(uv);
+	const float vignetteEffect = smoothstep(_ChromaticAberrationParams.x, _ChromaticAberrationParams.y, dist);
+
+	// Define offsets for chromatic aberration
+	const float2 redOffset = float2(_ChromaticAberrationStrength, 0) * texelSize * vignetteEffect;
+	const float2 blueOffset = -float2(_ChromaticAberrationStrength, 0) * texelSize * vignetteEffect;
+
+	// Sample the texture for each color channel with different offsets
+	float red = GetSource(screenUV + redOffset).r;
+	float green = GetSource(screenUV).g; // No offset for green channel
+	float blue = GetSource(screenUV + blueOffset).b;
+
+	// Combine the channels back into a single color
+	float3 color = float3(red, green, blue);
+
+	return float4(color, 1.0);
+}
+
+
 float4 _ColorGradingLUTParameters;
 
 bool _ColorGradingLUTInLogC;
 
 float3 GetColorGradedLUT (float2 uv, bool useACES = false) {
-	float3 color = GetLutStripValue(uv, _ColorGradingLUTParameters);
+	const float3 color = GetLutStripValue(uv, _ColorGradingLUTParameters);
 	return ColorGrade(_ColorGradingLUTInLogC ? LogCToLinear(color) : color, useACES);
 }
 

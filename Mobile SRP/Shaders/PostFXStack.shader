@@ -89,6 +89,36 @@
 				#pragma fragment CopyPassFragment
 			ENDHLSL
 		}
+
+		Pass {
+			Name "Sharpen"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment SharpenPassFragment
+			ENDHLSL
+		}
+
+		Pass {
+			Name "Chromatic Aberration"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment ChromaticAberrationPassFragment
+			ENDHLSL
+		}
+
+		Pass {
+			Name "Vignette"
+			
+			HLSLPROGRAM
+				#pragma target 3.5
+				#pragma vertex DefaultPassVertex
+				#pragma fragment VignettePassFragment
+			ENDHLSL
+		}
 		
 		Pass {
 			Name "Color Grading None"

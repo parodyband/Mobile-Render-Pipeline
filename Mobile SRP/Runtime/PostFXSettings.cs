@@ -141,6 +141,54 @@ public class PostFXSettings : ScriptableObject
 		shadowsMidtonesHighlights;
 	
 	[Serializable]
+	public struct SharpenSettings
+	{
+		public bool enabled;
+		[Range(0,1)]
+		public float intensity;
+	}
+	
+	public SharpenSettings sharpen = new()
+	{
+		enabled = false,
+		intensity = 0.5f
+	};
+	
+	[Serializable]
+	public struct ChromaticAberrationSettings
+	{
+		public bool enabled;
+		[Range(0,10)]
+		public float intensity;
+		[Header("x = inner radius, y = outer radius")]
+		public Vector2 chromaticAberrationParameters;
+	}
+	
+	public ChromaticAberrationSettings chromaticAberration = new()
+	{
+		enabled = false,
+		intensity = 0.5f,
+		chromaticAberrationParameters = new Vector2(.5f, 1f)
+	};
+	
+	[Serializable]
+	public struct VignetteSettings
+	{
+		public bool enabled;
+		[Header("Vignette parameters: x = intensity, y = smoothness, z/w = inner/outer radius")]
+		[Tooltip("x = intensity, y = smoothness, z/w = inner/outer radius")]
+		public Vector4 vignetteParameters;
+		public Color color;
+	}
+	
+	public VignetteSettings vignetteSettings = new()
+	{
+		enabled = false,
+		vignetteParameters = new Vector4(0.5f, 0.4f, 1.8f, 0.3f),
+		color = Color.black
+	};
+	
+	[Serializable]
 	public struct ToneMappingSettings
 	{
 		public enum Mode

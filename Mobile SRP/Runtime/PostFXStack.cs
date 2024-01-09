@@ -15,6 +15,9 @@ public class PostFXStack
 		BloomScatterFinal,
 		BloomVertical,
 		Copy,
+		Sharpen,
+		ChromaticAberration,
+		Vignette,
 		ColorGradingNone,
 		ColorGradingACES,
 		ColorGradingNeutral,
@@ -70,6 +73,11 @@ public class PostFXStack
 		m_FinalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
 
 	private readonly int m_FXAAConfigId = Shader.PropertyToID("_FXAAConfig");
+	private readonly int m_SharpenStrengthId = Shader.PropertyToID("_SharpenStrength");
+	private readonly int m_ChromaticAberrationStrengthId = Shader.PropertyToID("_ChromaticAberrationStrength");
+	private readonly int m_ChromaticAberrationParamsId = Shader.PropertyToID("_ChromaticAberrationParams");
+	private readonly int m_VignetteColorId = Shader.PropertyToID("_VignetteColor");
+	private readonly int m_VignetteParams = Shader.PropertyToID("_VignetteParams");
 
 	private CommandBuffer m_Buffer;
 
@@ -123,6 +131,28 @@ public class PostFXStack
 	public void Render(RenderGraphContext context, TextureHandle sourceId)
 	{
 		m_Buffer = context.cmd;
+		
+		if (m_Settings.sharpen.enabled)
+		{
+			SetSharpenStrength(m_Settings.sharpen.intensity);
+		}
+
+		if (m_Settings.chromaticAberration.enabled)
+		{
+			SetChromeAberrationStrength(m_Settings.chromaticAberration.intensity);
+			m_Buffer.SetGlobalVector(m_ChromaticAberrationParamsId, new Vector4(
+				m_Settings.chromaticAberration.chromaticAberrationParameters.x,
+				m_Settings.chromaticAberration.chromaticAberrationParameters.y,
+				0,
+				0));
+		}
+		
+		if (m_Settings.vignetteSettings.enabled)
+		{
+			m_Buffer.SetGlobalColor(m_VignetteColorId, m_Settings.vignetteSettings.color);
+			m_Buffer.SetGlobalVector(m_VignetteParams, m_Settings.vignetteSettings.vignetteParameters);
+		}
+		
 		if (DoBloom(sourceId))
 		{
 			DoFinal(m_BloomResultId);
@@ -259,6 +289,14 @@ public class PostFXStack
 		m_Buffer.EndSample("Bloom");
 		return true;
 	}
+	
+	public void SetSharpenStrength(float strength) {
+		m_Buffer.SetGlobalFloat(m_SharpenStrengthId, strength);
+	}	
+	
+	public void SetChromeAberrationStrength(float strength) {
+		m_Buffer.SetGlobalFloat(m_ChromaticAberrationStrengthId, strength);
+	}
 
 	private void ConfigureColorAdjustments()
 	{
@@ -365,13 +403,31 @@ public class PostFXStack
 
 		m_Buffer.SetGlobalFloat(m_FinalSrcBlendId, 1f);
 		m_Buffer.SetGlobalFloat(m_FinalDstBlendId, 0f);
+		
+		
+		
+		var currentSource = sourceId;
+		var tempRTId = -1;
+
+		if (m_Settings.sharpen.enabled) {
+			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "Sharpen", Pass.Sharpen);
+		}
+
+		if (m_Settings.chromaticAberration.enabled) {
+			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "ChromaticAberration", Pass.ChromaticAberration);
+		}
+		
+		if (m_Settings.vignetteSettings.enabled) {
+			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "Vignette", Pass.Vignette);
+		}
+		
 		if (m_FXAA.enabled)
 		{
 			ConfigureFXAA();
 			m_Buffer.GetTemporaryRT(
 				m_ColorGradingResultId, m_BufferSize.x, m_BufferSize.y, 0,
 				FilterMode.Bilinear, RenderTextureFormat.Default);
-			Draw(sourceId, m_ColorGradingResultId, m_KeepAlpha ?
+			Draw(currentSource, m_ColorGradingResultId, m_KeepAlpha ?
 				Pass.ApplyColorGrading : Pass.ApplyColorGradingWithLuma);
 		}
 
@@ -391,7 +447,7 @@ public class PostFXStack
 			}
 			else
 			{
-				DrawFinal(sourceId, Pass.ApplyColorGrading);
+				DrawFinal(currentSource, Pass.ApplyColorGrading);
 			}
 		}
 		else
@@ -416,9 +472,25 @@ public class PostFXStack
 			DrawFinal(m_FinalResultId, Pass.FinalRescale);
 			m_Buffer.ReleaseTemporaryRT(m_FinalResultId);
 		}
-		
+		if (tempRTId != -1) {
+			m_Buffer.ReleaseTemporaryRT(tempRTId);
+		}
 		m_Buffer.ReleaseTemporaryRT(m_ColorGradingLUTId);
 	}
+	
+	private void ApplyPostProcessingEffect(ref RenderTargetIdentifier currentSource, ref int tempRTId, string effectName, Pass effectPass) {
+		m_Buffer.BeginSample(effectName);
+		var effectId = Shader.PropertyToID("_" + effectName);
+		m_Buffer.GetTemporaryRT(effectId, m_BufferSize.x, m_BufferSize.y, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+		Draw(currentSource, effectId, effectPass);
+		if (tempRTId != -1) {
+			m_Buffer.ReleaseTemporaryRT(tempRTId); // Release the previous temporary RT
+		}
+		currentSource = effectId; // Update current source to the effect image
+		tempRTId = effectId; // Update temp RT ID
+		m_Buffer.EndSample(effectName);
+	}
+
 
 	private void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, Pass pass)
 	{

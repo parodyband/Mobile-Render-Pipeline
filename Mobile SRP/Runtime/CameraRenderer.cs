@@ -21,8 +21,9 @@ public class CameraRenderer
 
     private static readonly int Time = Shader.PropertyToID("_Time");
 
-    public void Render( RenderGraph renderGraph, ScriptableRenderContext context, Camera camera, CameraBufferSettings bufferSettings,
-        bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution )
+    public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera,
+        CameraBufferSettings bufferSettings,
+        bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
     {
         m_FrameTime += UnityEngine.Time.deltaTime;
 
@@ -123,19 +124,20 @@ public class CameraRenderer
             rendererListCulling = true,
             scriptableRenderContext = context
         };
+        
         using (renderGraph.RecordAndExecute(renderGraphParameters))
         {
             using var _ = new RenderGraphProfilingScope(
                 renderGraph, cameraSampler);
             var shadowTextures = new ShadowTextures();
-            
+
             if (!cameraSettings.disableShadowPass)
             {
                 shadowTextures = LightingPass.Record(
                     renderGraph, cullingResults, shadowSettings, useLightsPerObject,
                     cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
             }
-            
+
             var textures = SetupPass.Record(
                 renderGraph, useIntermediateBuffer, useColorTexture,
                 useDepthTexture, useHDR, bufferSize, camera);
