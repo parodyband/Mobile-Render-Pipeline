@@ -167,9 +167,9 @@ float4 SharpenPassFragment(Varyings input) : SV_TARGET {
 	const float2 texelSize = GetSourceTexelSize().xy;
 	// Sharpen kernel
 	const float3x3 sharpenKernel = float3x3(
-	   0, -0.5, 0,
-	   -0.5, 3, -0.5,
-	   0, -0.5, 0);
+	   0, -1, 0,
+	   -1, 5, -1,
+	   0, -1, 0);
 
 	float3 color = 0;
 	for (int y = -1; y <= 1; y++) {
