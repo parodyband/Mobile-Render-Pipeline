@@ -1,7 +1,9 @@
 {
-    "name": "MobileSSRP.Editor",
+    "name": "MobileSRP.Editor",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:08af79e930d962349800125b85f374b4"
+    ],
     "includePlatforms": [
         "Editor"
     ],
