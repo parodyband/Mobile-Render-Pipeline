@@ -1,43 +1,64 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
-namespace Mobile_SRP.Runtime
+public partial class MobileRenderPipeline : RenderPipeline
 {
-    public partial class MobileRenderPipeline : RenderPipeline
-    {
-        private ScriptableRenderContext m_Context;
+	private readonly CameraRenderer m_Renderer;
 
-        private readonly CameraRenderer m_Renderer = new();
+	private readonly CameraBufferSettings m_CameraBufferSettings;
 
-        private readonly bool m_UseDynamicBatching;
-        private readonly bool m_UseGPUInstancing;
-        private readonly bool m_UseLightsPerObject;
-        private readonly ShadowSettings m_ShadowSettings;
+	private readonly bool m_UseLightsPerObject;
 
-        public MobileRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSrpBatcher, bool useLightsPerObject, ShadowSettings shadowSettings)
-        {
-            m_ShadowSettings = shadowSettings;
-            m_UseDynamicBatching = useDynamicBatching;
-            m_UseGPUInstancing = useGPUInstancing;
-            m_UseLightsPerObject = useLightsPerObject;
-            GraphicsSettings.useScriptableRenderPipelineBatching = useSrpBatcher;
-            GraphicsSettings.lightsUseLinearIntensity = true;
-            InitializeForEditor();
-        }
+	private readonly ShadowSettings m_ShadowSettings;
 
-        protected override void Render(ScriptableRenderContext context, Camera[] cameras)
-        {
-        }
+	private readonly PostFXSettings m_PostFXSettings;
 
-        protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
-        {
-            for (int i = 0; i < cameras.Count; i++)
-            {
-                m_Renderer.Render(
-                    context, cameras[i], m_UseDynamicBatching, m_UseGPUInstancing,m_UseLightsPerObject, m_ShadowSettings
-                );
-            }
-        }
-    }
+	private readonly int m_ColorLUTResolution;
+
+	private readonly RenderGraph m_RenderGraph = new("Mobile SRP Render Graph");
+
+	public MobileRenderPipeline(
+		CameraBufferSettings cameraBufferSettings,
+		bool useSRPBatcher,
+		bool useLightsPerObject, ShadowSettings shadowSettings,
+		PostFXSettings postFXSettings, int colorLUTResolution,
+		Shader cameraRendererShader)
+	{
+		m_ColorLUTResolution = colorLUTResolution;
+		m_CameraBufferSettings = cameraBufferSettings;
+		m_PostFXSettings = postFXSettings;
+		m_ShadowSettings = shadowSettings;
+		m_UseLightsPerObject = useLightsPerObject;
+		GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
+		GraphicsSettings.lightsUseLinearIntensity = true;
+		InitializeForEditor();
+		m_Renderer = new CameraRenderer(cameraRendererShader);
+	}
+
+	protected override void Render(
+		ScriptableRenderContext context, Camera[] cameras) {}
+
+	protected override void Render(
+		ScriptableRenderContext context, List<Camera> cameras)
+	{
+		foreach (var camera in cameras)
+		{
+			m_Renderer.Render(
+				m_RenderGraph, context, camera, m_CameraBufferSettings,
+				m_UseLightsPerObject,
+				m_ShadowSettings, m_PostFXSettings, m_ColorLUTResolution);
+		}
+
+		m_RenderGraph.EndFrame();
+	}
+
+	protected override void Dispose(bool disposing)
+	{
+		base.Dispose(disposing);
+		DisposeForEditor();
+		m_Renderer.Dispose();
+		m_RenderGraph.Cleanup();
+	}
 }

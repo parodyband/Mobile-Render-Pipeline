@@ -10,22 +10,24 @@
 #include "../ShaderLibrary/DitheringFunctions.hlsl"
 
 struct Attributes {
-	half3 positionOS : POSITION;
-	half3 normalOS : NORMAL;
-	half4 tangentOS : TANGENT;
-	half2 baseUV : TEXCOORD0;
+	float3 positionOS : POSITION;
+	float3 normalOS : NORMAL;
+	float4 tangentOS : TANGENT;
+	float2 baseUV : TEXCOORD0;
 	GI_ATTRIBUTE_DATA
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings {
-	half4 positionCS : SV_POSITION;
-	half3 positionWS : VAR_POSITION;
-	half3 normalWS : VAR_NORMAL;
-	half2 baseUV : VAR_BASE_UV;
-	half specularPower : TEXCOORD2;
+	float4 positionCS_SS : SV_POSITION;
+	float3 positionWS : VAR_POSITION;
+	float3 normalWS : VAR_NORMAL;
 	#if defined(_NORMAL_MAP)
 	float4 tangentWS : VAR_TANGENT;
+	#endif
+	float2 baseUV : VAR_BASE_UV;
+	#if defined(_DETAIL_MAP)
+	float2 detailUV : VAR_DETAIL_UV;
 	#endif
 	GI_VARYINGS_DATA
 	UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -37,52 +39,40 @@ Varyings LitPassVertex (Attributes input) {
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 	TRANSFER_GI_DATA(input, output);
 	output.positionWS = TransformObjectToWorld(input.positionOS);
-	output.positionCS = TransformWorldToHClip(output.positionWS);
+	output.positionCS_SS = TransformWorldToHClip(output.positionWS);
 	output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 	#if defined(_NORMAL_MAP)
 	output.tangentWS = float4(
 		TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w
 	);
 	#endif
-	
-	half4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
-	output.baseUV = input.baseUV * baseST.xy + baseST.zw;
-
-	#ifdef _VERTEX_LIGHTING_ON
-
-	// Light light = GetDirectionalLight(0);
-	// // Compute the half-vector and specular power only if vertex lighting is enabled
-	// const float3 viewDir = SafeNormalize(_WorldSpaceCameraPos - output.positionWS);
-	// const float3 lightDir = SafeNormalize(light.direction.xyz); // Assuming a single directional light for simplicity
-	// const float3 halfVector = SafeNormalize(viewDir + lightDir);
-	//
-	// // Compute the specular power based on the smoothness
-	// const half smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
-	// const half extraSpecularPower = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SpecularPower);
-	// output.specularPower = pow(saturate(dot(output.normalWS, halfVector)), GetSmoothnessPower(smoothness)) * extraSpecularPower;
-	//output.specularPower = 0;
-	#else
-	output.specularPower = 0.0;
+	output.baseUV = TransformBaseUV(input.baseUV);
+	#if defined(_DETAIL_MAP)
+	output.detailUV = TransformDetailUV(input.baseUV);
 	#endif
-	
 	return output;
 }
 
 float4 LitPassFragment (Varyings input) : SV_TARGET {
-	
 	UNITY_SETUP_INSTANCE_ID(input);
-	const half4 baseMap = GetBase(input.baseUV);
-	const half4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_BaseMap, input.baseUV);
-	const half3 emission = GetEmission(input.baseUV);
-	half4 base = baseMap;
+	InputConfig config = GetInputConfig(input.positionCS_SS, input.baseUV);
+	ClipLOD(config.fragment, unity_LODFade.x);
 	
-	#if defined(_CLIPPING)
-		clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff)); 
+	#if defined(_MASK_MAP)
+	config.useMask = true;
 	#endif
-
+	#if defined(_DETAIL_MAP)
+	config.detailUV = input.detailUV;
+	config.useDetail = true;
+	#endif
+	
+	float4 base = GetBase(config);
+	#if defined(_CLIPPING)
+	clip(base.a - GetCutoff(config));
+	#endif
+	
 	Surface surface;
 	surface.position = input.positionWS;
-	const InputConfig config = GetInputConfig(input.baseUV);
 	#if defined(_NORMAL_MAP)
 	surface.normal = NormalTangentToWorld(
 		GetNormalTS(config), input.normalWS, input.tangentWS
@@ -95,33 +85,23 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
 	surface.depth = -TransformWorldToView(input.positionWS).z;
 	surface.color = base.rgb;
-	surface.occlusion = GetOcclusion(input.baseUV);
 	surface.alpha = base.a;
-	surface.fresnelStrength = GetFresnel(input.baseUV);
-	surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic) * maskMap.b;
-	surface.smoothness = GetSmoothness(input.baseUV) * maskMap.g;
-	const float2 ditherUV = ScreenSpaceUV(input.positionCS) * _ScreenParams.xy / 512.;
-	surface.dither = BlueNoiseSampler(ditherUV);
+	surface.metallic = GetMetallic(config);
+	surface.occlusion = GetOcclusion(config);
+	surface.smoothness = GetSmoothness(config);
+	surface.fresnelStrength = GetFresnel(config);
+	surface.dither = InterleavedGradientNoise(config.fragment.positionSS, 0);
+	surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 	
-	#ifdef _MATCAP_ON
-	float3 normal_view_space = normalize(mul(surface.normal, (float3x3)_WorldToViewMatrix));
-	const float2 uv = float2(0.5 + atan2(normal_view_space.z, normal_view_space.x) / (2 * PI), 0.5 - asin(normal_view_space.y) / PI);
-	surface.matcap = GetMatCap(uv) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MatCapPower);
-	#endif
-
-	#ifdef _VERTEX_LIGHTING_ON
-	//GI gi = GetGI(GI_FRAGMENT_DATA(input), , surface);
-	//half3 color = GetMobileLightingVertex(surface, input.specularPower,gi);
-	half3 color = surface.color;
+	#if defined(_PREMULTIPLY_ALPHA)
+	BRDF brdf = GetBRDF(surface, true);
 	#else
-	surface.specularPower = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SpecularPower);
-	//half3 color = GetMobileLighting(surface,gi);
 	BRDF brdf = GetBRDF(surface);
-	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
-	half3 color = GetLighting(surface,brdf,gi);
 	#endif
-
-	return half4(color + emission, surface.alpha);
+	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
+	float3 color = GetLighting(surface, brdf, gi);
+	color += GetEmission(config);
+	return float4(color, GetFinalAlpha(surface.alpha));
 }
 
 #endif

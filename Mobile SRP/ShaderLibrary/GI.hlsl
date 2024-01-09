@@ -1,4 +1,4 @@
-#ifndef CUSTOM_GI_INCLUDED
+﻿#ifndef CUSTOM_GI_INCLUDED
 #define CUSTOM_GI_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"

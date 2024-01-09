@@ -1,161 +1,176 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
-namespace Mobile_SRP.Runtime
+public class CameraRenderer
 {
-    public partial class CameraRenderer
+    public const float RenderScaleMin = 0.1f, RenderScaleMax = 2f;
+
+    private static readonly CameraSettings DefaultCameraSettings = new();
+
+    private readonly PostFXStack m_PostFXStack = new();
+
+    private readonly Material m_Material;
+
+    public CameraRenderer(Shader shader) =>
+        m_Material = CoreUtils.CreateEngineMaterial(shader);
+
+    public void Dispose() => CoreUtils.Destroy(m_Material);
+
+    private float m_FrameTime;
+
+    private static readonly int Time = Shader.PropertyToID("_Time");
+
+    public void Render( RenderGraph renderGraph, ScriptableRenderContext context, Camera camera, CameraBufferSettings bufferSettings,
+        bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution )
     {
-        private ScriptableRenderContext m_Context;
-        private Camera m_Camera;
+        m_FrameTime += UnityEngine.Time.deltaTime;
 
-        private const string BufferName = "Render Camera";
-
-        private static readonly ShaderTagId UnlitShaderTagId = new("SRPDefaultUnlit");
-
-        private static readonly ShaderTagId LitShaderTagId = new("DefaultLit");
-
-        private static readonly ShaderTagId TimeShaderTagId = new("Time");
-
-        private CullingResults m_CullingResults;
-
-        private readonly Lighting m_Lighting = new();
-
-        private readonly CommandBuffer m_Buffer = new()
+        if (m_FrameTime > 100)
         {
-            name = BufferName
+            m_FrameTime = 0;
+        }
+
+        Shader.SetGlobalVector(Time, new Vector2(UnityEngine.Time.deltaTime, m_FrameTime));
+
+        ProfilingSampler cameraSampler;
+        CameraSettings cameraSettings;
+        if (camera.TryGetComponent(out MobileRenderPipelineCamera crpCamera))
+        {
+            cameraSampler = crpCamera.Sampler;
+            cameraSettings = crpCamera.Settings;
+        }
+        else
+        {
+            cameraSampler = ProfilingSampler.Get(camera.cameraType);
+            cameraSettings = DefaultCameraSettings;
+        }
+
+        bool useColorTexture, useDepthTexture;
+        if (camera.cameraType == CameraType.Reflection)
+        {
+            useColorTexture = bufferSettings.copyColorReflection;
+            useDepthTexture = bufferSettings.copyDepthReflection;
+        }
+        else
+        {
+            useColorTexture =
+                bufferSettings.copyColor && cameraSettings.copyColor;
+            useDepthTexture =
+                bufferSettings.copyDepth && cameraSettings.copyDepth;
+        }
+
+        if (cameraSettings.overridePostFX)
+        {
+            postFXSettings = cameraSettings.postFXSettings;
+        }
+
+        var hasActivePostFX =
+            postFXSettings != null && PostFXSettings.IsActiveFor(camera);
+
+        var renderScale = cameraSettings.GetRenderScale(
+            bufferSettings.renderScale);
+        var useScaledRendering = renderScale is < 0.99f or > 1.01f;
+
+#if UNITY_EDITOR
+        if (camera.cameraType == CameraType.SceneView)
+        {
+            ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+            useScaledRendering = false;
+        }
+#endif
+
+        if (!camera.TryGetCullingParameters(
+                out var scriptableCullingParameters))
+        {
+            return;
+        }
+
+        scriptableCullingParameters.shadowDistance =
+            Mathf.Min(shadowSettings.maxDistance, camera.farClipPlane);
+        var cullingResults = context.Cull(
+            ref scriptableCullingParameters);
+
+        var useHDR = bufferSettings.allowHDR && camera.allowHDR;
+        Vector2Int bufferSize = default;
+        if (useScaledRendering)
+        {
+            renderScale = Mathf.Clamp(
+                renderScale, RenderScaleMin, RenderScaleMax);
+            bufferSize.x = (int)(camera.pixelWidth * renderScale);
+            bufferSize.y = (int)(camera.pixelHeight * renderScale);
+        }
+        else
+        {
+            bufferSize.x = camera.pixelWidth;
+            bufferSize.y = camera.pixelHeight;
+        }
+
+        bufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
+        m_PostFXStack.Setup(
+            camera, bufferSize, postFXSettings, cameraSettings.keepAlpha,
+            useHDR, colorLUTResolution, cameraSettings.finalBlendMode,
+            bufferSettings.bicubicRescaling, bufferSettings.fxaa);
+
+        var useIntermediateBuffer = useScaledRendering ||
+                                    useColorTexture || useDepthTexture || hasActivePostFX;
+
+        var renderGraphParameters = new RenderGraphParameters
+        {
+            commandBuffer = CommandBufferPool.Get(),
+            currentFrameIndex = UnityEngine.Time.frameCount,
+            executionName = cameraSampler.name,
+            rendererListCulling = true,
+            scriptableRenderContext = context
         };
-
-        public float FrameTime = 0;
-        public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching,
-            bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings)
+        using (renderGraph.RecordAndExecute(renderGraphParameters))
         {
-            m_Context = context;
-            m_Camera = camera;
-            
-            FrameTime += Time.deltaTime;
-            
-            if (FrameTime > 100)
+            using var _ = new RenderGraphProfilingScope(
+                renderGraph, cameraSampler);
+
+            var shadowTextures = LightingPass.Record(
+                renderGraph, cullingResults, shadowSettings, useLightsPerObject,
+                cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+
+            var textures = SetupPass.Record(
+                renderGraph, useIntermediateBuffer, useColorTexture,
+                useDepthTexture, useHDR, bufferSize, camera);
+
+            GeometryPass.Record(
+                renderGraph, camera, cullingResults,
+                useLightsPerObject, cameraSettings.renderingLayerMask, true,
+                textures, shadowTextures);
+
+            SkyboxPass.Record(renderGraph, camera, textures);
+
+            var copier = new CameraRendererCopier(
+                m_Material, camera, cameraSettings.finalBlendMode);
+            CopyAttachmentsPass.Record(
+                renderGraph, useColorTexture, useDepthTexture,
+                copier, textures);
+
+            GeometryPass.Record(
+                renderGraph, camera, cullingResults,
+                useLightsPerObject, cameraSettings.renderingLayerMask, false,
+                textures, shadowTextures);
+
+            UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
+
+            if (hasActivePostFX)
             {
-                FrameTime = 0;
+                PostFXPass.Record(renderGraph, m_PostFXStack, textures);
+            }
+            else if (useIntermediateBuffer)
+            {
+                FinalPass.Record(renderGraph, copier, textures);
             }
 
-            m_Buffer.SetGlobalVector("_Time", new Vector2(Time.deltaTime, FrameTime));
-            //Debug.Log(FrameTime);
-            PrepareBuffer();
-            PrepareForSceneWindow();
-
-            if (!Cull(shadowSettings.maxDistance)) return;
-
-            m_Buffer.BeginSample(SampleName);
-            
-            m_Lighting.Setup(context, m_CullingResults, shadowSettings, useLightsPerObject);
-
-            m_Buffer.EndSample(SampleName);
-
-            Setup();
-            DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
-            DrawUnsupportedShaders();
-            DrawGizmos();
-
-            m_Lighting.Cleanup();
-
-            Submit();
+            GizmosPass.Record(renderGraph, useIntermediateBuffer,
+                copier, textures);
         }
 
-        private bool Cull(float maxShadowDistance)
-        {
-            if (!m_Camera.TryGetCullingParameters(out ScriptableCullingParameters p)) return false;
-            p.shadowDistance = Mathf.Min(maxShadowDistance, m_Camera.farClipPlane);
-            m_CullingResults = m_Context.Cull(ref p);
-            return true;
-        }
-
-        private void Setup()
-        {
-            m_Context.SetupCameraProperties(m_Camera);
-            var worldToViewMatrix = m_Camera.worldToCameraMatrix;
-            m_Buffer.SetGlobalMatrix("_WorldToViewMatrix", worldToViewMatrix);
-            //m_Buffer.SetGlobalMatrix("_ViewToWorldMatrix", worldToViewMatrix.inverse);
-            //m_Buffer.SetGlobalVector("_WorldSpaceCameraPos", m_Camera.transform.position);
-            m_Buffer.SetGlobalVector("_ProjectionParams", GetProjectionParams(m_Camera));
-            m_Buffer.SetGlobalVector("_ScreenParams",
-                new Vector4(m_Camera.pixelWidth, m_Camera.pixelHeight, 1 / m_Camera.pixelWidth,
-                    1 / m_Camera.pixelHeight));
-            var flags = m_Camera.clearFlags;
-            m_Buffer.ClearRenderTarget(
-                flags <= CameraClearFlags.Depth,
-                flags <= CameraClearFlags.Color,
-                flags == CameraClearFlags.Color ? m_Camera.backgroundColor.linear : Color.clear
-            );
-            m_Buffer.BeginSample(SampleName);
-            ExecuteBuffer();
-        }
-
-        private Vector4 GetProjectionParams(Camera camera)
-        {
-            var p = camera.projectionMatrix;
-            var f = camera.nearClipPlane;
-            var n = camera.farClipPlane;
-            var a = p[2, 2];
-            var b = p[3, 2];
-            return new Vector4(-1 / (a * f + b), 1 / (a * n + b), -a / (a * n + b), a / (a * f + b));
-        }
-
-        private void Submit()
-        {
-            m_Buffer.EndSample(SampleName);
-            ExecuteBuffer();
-            m_Context.Submit();
-        }
-
-        private void ExecuteBuffer()
-        {
-            m_Context.ExecuteCommandBuffer(m_Buffer);
-            m_Buffer.Clear();
-        }
-
-        private void DrawVisibleGeometry(
-            bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject
-        )
-        {
-            var lightsPerObjectFlags = useLightsPerObject
-                ? PerObjectData.LightData | PerObjectData.LightIndices
-                : PerObjectData.None;
-            var sortingSettings = new SortingSettings(m_Camera)
-            {
-                criteria = SortingCriteria.CommonOpaque
-            };
-            var drawingSettings = new DrawingSettings(
-                UnlitShaderTagId, sortingSettings
-            )
-            {
-                enableDynamicBatching = useDynamicBatching,
-                enableInstancing = useGPUInstancing,
-                perObjectData =
-                    PerObjectData.ReflectionProbes |
-                    PerObjectData.Lightmaps | PerObjectData.ShadowMask |
-                    PerObjectData.LightProbe | PerObjectData.OcclusionProbe |
-                    PerObjectData.LightProbeProxyVolume |
-                    PerObjectData.OcclusionProbeProxyVolume |
-                    lightsPerObjectFlags
-            };
-            drawingSettings.SetShaderPassName(1, LitShaderTagId);
-
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
-
-            m_Context.DrawRenderers(
-                m_CullingResults, ref drawingSettings, ref filteringSettings
-            );
-
-            m_Context.DrawSkybox(m_Camera);
-
-            sortingSettings.criteria = SortingCriteria.CommonTransparent;
-            drawingSettings.sortingSettings = sortingSettings;
-            filteringSettings.renderQueueRange = RenderQueueRange.transparent;
-
-            m_Context.DrawRenderers(
-                m_CullingResults, ref drawingSettings, ref filteringSettings
-            );
-        }
+        context.ExecuteCommandBuffer(renderGraphParameters.commandBuffer);
+        context.Submit();
+        CommandBufferPool.Release(renderGraphParameters.commandBuffer);
     }
 }
