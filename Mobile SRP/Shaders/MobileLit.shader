@@ -23,7 +23,6 @@
     	
 		[Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("Receive Shadows", Float) = 1
 		[KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
-    	
         [Toggle(_PREMULTIPLY_ALPHA)] _PremulAlpha ("Premultiply Alpha", Float) = 0
 
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
