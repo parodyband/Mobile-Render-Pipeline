@@ -166,9 +166,10 @@ float _SharpenStrength;
 float4 SharpenPassFragment(Varyings input) : SV_TARGET {
 	const float2 texelSize = GetSourceTexelSize().xy;
 	// Sharpen kernel
-	const float3x3 sharpenKernel = float3x3(-1, -1, -1,
-											-1, 9, -1,
-											-1, -1, -1);
+	const float3x3 sharpenKernel = float3x3(
+	   0, -0.5, 0,
+	   -0.5, 3, -0.5,
+	   0, -0.5, 0);
 
 	float3 color = 0;
 	for (int y = -1; y <= 1; y++) {
@@ -221,21 +222,21 @@ float3 ColorGradeColorFilter (float3 color) {
 
 float3 ColorGradingHueShift (float3 color) {
 	color = RgbToHsv(color);
-	float hue = color.x + _ColorAdjustments.z;
+	const float hue = color.x + _ColorAdjustments.z;
 	color.x = RotateHue(hue, 0.0, 1.0);
 	return HsvToRgb(color);
 }
 
 float3 ColorGradingSaturation (float3 color, bool useACES) {
-	float luminance = Luminance(color, useACES);
+	const float luminance = Luminance(color, useACES);
 	return (color - luminance) * _ColorAdjustments.w + luminance;
 }
 
 float3 ColorGradeSplitToning (float3 color, bool useACES) {
 	color = PositivePow(color, 1.0 / 2.2);
-	float t = saturate(Luminance(saturate(color), useACES) + _SplitToningShadows.w);
-	float3 shadows = lerp(0.5, _SplitToningShadows.rgb, 1.0 - t);
-	float3 highlights = lerp(0.5, _SplitToningHighlights.rgb, t);
+	const float t = saturate(Luminance(saturate(color), useACES) + _SplitToningShadows.w);
+	const float3 shadows = lerp(0.5, _SplitToningShadows.rgb, 1.0 - t);
+	const float3 highlights = lerp(0.5, _SplitToningHighlights.rgb, t);
 	color = SoftLight(color, shadows);
 	color = SoftLight(color, highlights);
 	return PositivePow(color, 2.2);
@@ -249,10 +250,10 @@ float3 ColorGradingChannelMixer (float3 color) {
 }
 
 float3 ColorGradingShadowsMidtonesHighlights (float3 color, bool useACES) {
-	float luminance = Luminance(color, useACES);
-	float shadowsWeight = 1.0 - smoothstep(_SMHRange.x, _SMHRange.y, luminance);
-	float highlightsWeight = smoothstep(_SMHRange.z, _SMHRange.w, luminance);
-	float midtonesWeight = 1.0 - shadowsWeight - highlightsWeight;
+	const float luminance = Luminance(color, useACES);
+	const float shadowsWeight = 1.0 - smoothstep(_SMHRange.x, _SMHRange.y, luminance);
+	const float highlightsWeight = smoothstep(_SMHRange.z, _SMHRange.w, luminance);
+	const float midtonesWeight = 1.0 - shadowsWeight - highlightsWeight;
 	return
 		color * _SMHShadows.rgb * shadowsWeight +
 		color * _SMHMidtones.rgb * midtonesWeight +

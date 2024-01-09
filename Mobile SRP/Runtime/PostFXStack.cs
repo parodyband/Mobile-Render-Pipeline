@@ -409,9 +409,7 @@ public class PostFXStack
 		var currentSource = sourceId;
 		var tempRTId = -1;
 
-		if (m_Settings.sharpen.enabled) {
-			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "Sharpen", Pass.Sharpen);
-		}
+		
 
 		if (m_Settings.chromaticAberration.enabled) {
 			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "ChromaticAberration", Pass.ChromaticAberration);
@@ -421,6 +419,9 @@ public class PostFXStack
 			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "Vignette", Pass.Vignette);
 		}
 		
+		if (m_Settings.sharpen.enabled) {
+			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "Sharpen", Pass.Sharpen);
+		}
 		if (m_FXAA.enabled)
 		{
 			ConfigureFXAA();
@@ -430,7 +431,6 @@ public class PostFXStack
 			Draw(currentSource, m_ColorGradingResultId, m_KeepAlpha ?
 				Pass.ApplyColorGrading : Pass.ApplyColorGradingWithLuma);
 		}
-
 		var bicubicSampling =
 			m_BicubicRescaling ==
 			CameraBufferSettings.BicubicRescalingMode.UpAndDown ||
