@@ -409,8 +409,6 @@ public class PostFXStack
 		var currentSource = sourceId;
 		var tempRTId = -1;
 
-		
-
 		if (m_Settings.chromaticAberration.enabled) {
 			ApplyPostProcessingEffect(ref currentSource, ref tempRTId, "ChromaticAberration", Pass.ChromaticAberration);
 		}
@@ -480,14 +478,14 @@ public class PostFXStack
 	
 	private void ApplyPostProcessingEffect(ref RenderTargetIdentifier currentSource, ref int tempRTId, string effectName, Pass effectPass) {
 		m_Buffer.BeginSample(effectName);
-		var effectId = Shader.PropertyToID("_" + effectName);
+		var effectId = Shader.PropertyToID(effectName);
 		m_Buffer.GetTemporaryRT(effectId, m_BufferSize.x, m_BufferSize.y, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
 		Draw(currentSource, effectId, effectPass);
 		if (tempRTId != -1) {
 			m_Buffer.ReleaseTemporaryRT(tempRTId); // Release the previous temporary RT
 		}
 		currentSource = effectId; // Update current source to the effect image
-		tempRTId = effectId; // Update temp RT ID
+		tempRTId = effectId;
 		m_Buffer.EndSample(effectName);
 	}
 
