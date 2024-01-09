@@ -127,16 +127,20 @@ public class CameraRenderer
         {
             using var _ = new RenderGraphProfilingScope(
                 renderGraph, cameraSampler);
-
-            var shadowTextures = LightingPass.Record(
-                renderGraph, cullingResults, shadowSettings, useLightsPerObject,
-                cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
-
+            var shadowTextures = new ShadowTextures();
+            
+            if (!cameraSettings.disableShadowPass)
+            {
+                shadowTextures = LightingPass.Record(
+                    renderGraph, cullingResults, shadowSettings, useLightsPerObject,
+                    cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+            }
+            
             var textures = SetupPass.Record(
                 renderGraph, useIntermediateBuffer, useColorTexture,
                 useDepthTexture, useHDR, bufferSize, camera);
 
-            GeometryPass.Record(
+            GeometryPass.Record(cameraSettings,
                 renderGraph, camera, cullingResults,
                 useLightsPerObject, cameraSettings.renderingLayerMask, true,
                 textures, shadowTextures);
@@ -149,7 +153,7 @@ public class CameraRenderer
                 renderGraph, useColorTexture, useDepthTexture,
                 copier, textures);
 
-            GeometryPass.Record(
+            GeometryPass.Record(cameraSettings,
                 renderGraph, camera, cullingResults,
                 useLightsPerObject, cameraSettings.renderingLayerMask, false,
                 textures, shadowTextures);

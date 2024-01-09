@@ -17,7 +17,8 @@
     	_Metallic ("Metallic Add", Range(0, 1)) = 0.5
         _Smoothness ("Smoothness", Range(0, 1)) = 0.5
     	_Fresnel ("Fresnel Strength", Range(0, 1)) = 0.5
-    	
+    	_Occlusion ("Occlusion", Range(0, 1)) = 1
+
     	[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 		[HDR] _EmissionColor("Emission", Color) = (0.0, 0.0, 0.0, 0.0)
     	

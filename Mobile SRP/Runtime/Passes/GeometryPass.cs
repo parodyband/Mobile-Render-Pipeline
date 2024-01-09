@@ -14,16 +14,17 @@ public class GeometryPass
 		new("DefaultLit")
 	};
 
-	RendererListHandle list;
+	private RendererListHandle m_List;
 
 	private void Render(RenderGraphContext context)
 	{
-		context.cmd.DrawRendererList(list);
+		context.cmd.DrawRendererList(m_List);
 		context.renderContext.ExecuteCommandBuffer(context.cmd);
 		context.cmd.Clear();
 	}
 
 	public static void Record(
+		CameraSettings cameraSettings,
 		RenderGraph renderGraph,
 		Camera camera,
 		CullingResults cullingResults,
@@ -38,7 +39,7 @@ public class GeometryPass
 		using var builder = renderGraph.AddRenderPass(
 			sampler.name, out GeometryPass pass, sampler);
 
-		pass.list = builder.UseRendererList(renderGraph.CreateRendererList(
+		pass.m_List = builder.UseRendererList(renderGraph.CreateRendererList(
 			new RendererListDesc(ShaderTagIDs, cullingResults, camera)
 			{
 				sortingCriteria = opaque ?
@@ -73,9 +74,11 @@ public class GeometryPass
 				builder.ReadTexture(textures.depthCopy);
 			}
 		}
-		builder.ReadTexture(shadowTextures.directionalAtlas);
-		builder.ReadTexture(shadowTextures.otherAtlas);
-
+		if (!cameraSettings.disableShadowPass)
+		{
+			builder.ReadTexture(shadowTextures.directionalAtlas);
+			builder.ReadTexture(shadowTextures.otherAtlas);
+		}
 		builder.SetRenderFunc<GeometryPass>(
 			static (pass, context) => pass.Render(context));
 	}

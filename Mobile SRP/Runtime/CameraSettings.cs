@@ -11,6 +11,8 @@ public class CameraSettings
 	public int renderingLayerMask = -1;
 
 	public bool maskLights = false;
+	
+	public bool disableShadowPass;
 
 	public enum RenderScaleMode
 	{ Inherit, Multiply, Override }

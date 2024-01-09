@@ -70,8 +70,11 @@ float3 NormalTangentToWorld (float3 normalTS, float3 normalWS, float4 tangentWS)
 float4 invLerp(real4 from, real4 to, real4 value) {
 	return (value - from) / (to - from);
 }
+float invLerp_F(float from, float to, float value) {
+	return (value - from) / (to - from);
+}
 float remap(real origFrom, real origTo, real targetFrom, real targetTo, real value){
-	const float rel = invLerp(origFrom, origTo, value);
+	const float rel = invLerp_F(origFrom, origTo, value);
 	return lerp(targetFrom, targetTo, rel);
 }
 float4 remap(real4 origFrom, real4 origTo, real4 targetFrom, real4 targetTo, real4 value){
