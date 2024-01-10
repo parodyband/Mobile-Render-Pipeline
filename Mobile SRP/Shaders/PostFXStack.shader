@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Custom RP/Post FX Stack" {
+﻿Shader "Hidden/Mobile RP/Post FX Stack" {
 	
 	SubShader {
 		Cull Off

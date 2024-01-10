@@ -1,4 +1,4 @@
-﻿Shader "Custom RP/Particles/Unlit" {
+﻿Shader "Mobile RP/Particles/Unlit" {
 	
 	Properties {
 		_BaseMap("Texture", 2D) = "white" {}

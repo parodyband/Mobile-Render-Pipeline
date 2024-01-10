@@ -404,8 +404,6 @@ public class PostFXStack
 		m_Buffer.SetGlobalFloat(m_FinalSrcBlendId, 1f);
 		m_Buffer.SetGlobalFloat(m_FinalDstBlendId, 0f);
 		
-		
-		
 		var currentSource = sourceId;
 		var tempRTId = -1;
 
@@ -463,7 +461,7 @@ public class PostFXStack
 			}
 			else
 			{
-				Draw(sourceId, m_FinalResultId, Pass.ApplyColorGrading);
+				Draw(currentSource, m_FinalResultId, Pass.ApplyColorGrading);
 			}
 
 			m_Buffer.SetGlobalFloat(m_CopyBicubicId, bicubicSampling ? 1f : 0f);

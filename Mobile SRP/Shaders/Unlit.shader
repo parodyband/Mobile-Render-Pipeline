@@ -1,4 +1,4 @@
-﻿Shader "Custom RP/Unlit" {
+﻿Shader "Mobile RP/Unlit" {
 	
 	Properties {
 		_BaseMap("Texture", 2D) = "white" {}
