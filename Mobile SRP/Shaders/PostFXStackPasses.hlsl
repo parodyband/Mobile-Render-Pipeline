@@ -166,27 +166,25 @@ real _SharpenStrength;
 real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 	const real2 texelSize = GetSourceTexelSize().xy;
 
-	const real3x3 sharpenKernel = real3x3(
+	const float3x3 sharpenKernel = float3x3(
 	   0, -1, 0,
-	   -1, 5, -1,
+	   -1, 6, -1,
 	   0, -1, 0);
 
 	real3 color = 0;
 	
-	[unroll(9)]
+	UNITY_UNROLL
 	for (int i = 0; i < 9; i++) {
-		int x = i % 3 - 1; // This will loop x through -1, 0, 1
-		int y = i / 3 - 1; // This will loop y through -1, 0, 1
+		int x = i % 3 - 1;
+		int y = i / 3 - 1;
 
 		const real2 offset = real2(x, y) * texelSize;
-		color += GetSource(input.screenUV + offset).rgb /* * sharpenKernel[y + 1][x + 1]*/;
-		//color += GetSource(input.screenUV).rgb;
+		color += GetSource(input.screenUV + offset).rgb * sharpenKernel[y + 1][x + 1];
 	}
 
 	const real3 originalColor = GetSource(input.screenUV).rgb;
 
 	color = lerp(originalColor, color, _SharpenStrength);
-	//color = originalColor;
 	return real4(color, 1.0);
 }
 
