@@ -7,7 +7,7 @@
 TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
 
-real4 _PostFXSource_TexelSize;
+float4 _PostFXSource_TexelSize;
 
 real4 GetSourceTexelSize () {
 	return _PostFXSource_TexelSize;
@@ -179,7 +179,8 @@ real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 		int y = i / 3 - 1; // This will loop y through -1, 0, 1
 
 		const real2 offset = real2(x, y) * texelSize;
-		color += GetSource(input.screenUV + offset).rgb * sharpenKernel[y + 1][x + 1];
+		//color += GetSource(input.screenUV + offset).rgb * sharpenKernel[y + 1][x + 1];
+		color += GetSource(input.screenUV).rgb;
 	}
 
 	const real3 originalColor = GetSource(input.screenUV).rgb;
