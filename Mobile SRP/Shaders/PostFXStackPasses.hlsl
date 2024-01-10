@@ -172,6 +172,7 @@ real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 	   0, -1, 0);
 
 	real3 color = 0;
+	
 	for (int y = -1; y <= 1; y++) {
 		for (int x = -1; x <= 1; x++) {
 			const real2 offset = real2(x, y) * texelSize;
@@ -182,7 +183,7 @@ real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 	const real3 originalColor = GetSource(input.screenUV).rgb;
 
 	//color = lerp(originalColor, color, _SharpenStrength);
-	color = originalColor;
+	//color = originalColor;
 	return real4(color, 1.0);
 }
 
