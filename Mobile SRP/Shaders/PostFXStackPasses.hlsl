@@ -173,7 +173,6 @@ real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 
 	real3 color = 0;
 	
-	UNITY_UNROLL
 	for (int i = 0; i < 9; i++) {
 		int x = i % 3 - 1;
 		int y = i / 3 - 1;
