@@ -168,7 +168,7 @@ real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 
 	const float3x3 sharpenKernel = float3x3(
 	   0, -1, 0,
-	   -1, 6, -1,
+	   -1, 5, -1,
 	   0, -1, 0);
 
 	real3 color = 0;
