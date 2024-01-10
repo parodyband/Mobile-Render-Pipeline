@@ -181,8 +181,8 @@ real4 SharpenPassFragment(Varyings input) : SV_TARGET {
 
 	const real3 originalColor = GetSource(input.screenUV).rgb;
 
-	color = lerp(originalColor, color, _SharpenStrength);
-
+	//color = lerp(originalColor, color, _SharpenStrength);
+	color = originalColor;
 	return real4(color, 1.0);
 }
 
