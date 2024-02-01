@@ -16,6 +16,14 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 TEXTURECUBE(unity_SpecCube0);
 SAMPLER(samplerunity_SpecCube0);
 
+TEXTURE2D(unity_LightmapInd);
+SAMPLER(samplerunity_LightmapInd);
+
+#define LIGHTMAP_NAME unity_Lightmap
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV
+
 #if defined(LIGHTMAP_ON)
 	#define GI_ATTRIBUTE_DATA float2 lightMapUV : TEXCOORD1;
 	#define GI_VARYINGS_DATA float2 lightMapUV : VAR_LIGHT_MAP_UV;
@@ -36,21 +44,34 @@ struct GI {
 	ShadowMask shadowMask;
 };
 
-float3 SampleLightMap (float2 lightMapUV) {
-	#if defined(LIGHTMAP_ON)
-  		return SampleSingleLightmap(
-			TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightMapUV,
-			float4(1.0, 1.0, 0.0, 0.0),
-			#if defined(UNITY_LIGHTMAP_FULL_HDR)
-				false,
-			#else
-				true,
-			#endif
-			float4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0)
-	);
+float3 SampleLightMap (float2 staticLightmapUV, half3 normalWS) {
+
+	#ifdef UNITY_LIGHTMAP_FULL_HDR
+	bool encodedLightmap = false;
 	#else
-		return 0.0;
+	bool encodedLightmap = true;
 	#endif
+	float3 diffuseLighting = 0;
+	half4 transformCoords = half4(1, 1, 0, 0);
+	half4 decodeInstructions = half4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0h, 0.0h);
+	#if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+	diffuseLighting = SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+		TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+		LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+	#elif defined(LIGHTMAP_ON)
+	diffuseLighting = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
+	#endif
+
+	#if defined(DYNAMICLIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+	diffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+		TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+		dynamicLightmapUV, transformCoords, normalWS, false, decodeInstructions);
+	#elif defined(DYNAMICLIGHTMAP_ON)
+	diffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+		dynamicLightmapUV, transformCoords, false, decodeInstructions);
+	#endif
+
+	return diffuseLighting;
 }
 
 float3 SampleLightProbe (Surface surfaceWS) {
@@ -116,7 +137,7 @@ float3 SampleEnvironment (Surface surfaceWS, BRDF brdf) {
 
 GI GetGI (float2 lightMapUV, Surface surfaceWS, BRDF brdf) {
 	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+	gi.diffuse = SampleLightMap(lightMapUV, surfaceWS.normal) + SampleLightProbe(surfaceWS);
 	gi.specular = SampleEnvironment(surfaceWS, brdf);
 	gi.shadowMask.always = false;
 	gi.shadowMask.distance = false;

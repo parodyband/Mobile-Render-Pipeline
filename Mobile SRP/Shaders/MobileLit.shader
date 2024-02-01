@@ -62,6 +62,7 @@
 			#pragma multi_compile _ _LIGHTS_PER_OBJECT
 			#pragma multi_compile _ LIGHTMAP_ON
 			#pragma multi_compile _ LOD_FADE_CROSSFADE
+			#pragma multi_compile _ DIRLIGHTMAP_COMBINED
 			#pragma multi_compile_instancing
 
             #pragma vertex LitPassVertex
