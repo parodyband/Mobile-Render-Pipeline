@@ -20,6 +20,7 @@ public class CameraRenderer
     private float m_FrameTime;
 
     private static readonly int Time = Shader.PropertyToID("_Time");
+    private static readonly int CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
 
     public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera,
         CameraBufferSettings bufferSettings,
@@ -33,6 +34,7 @@ public class CameraRenderer
         }
 
         Shader.SetGlobalVector(Time, new Vector2(UnityEngine.Time.deltaTime, m_FrameTime));
+        Shader.SetGlobalVector(CameraForwardVector, camera.transform.forward);
 
         ProfilingSampler cameraSampler;
         CameraSettings cameraSettings;
