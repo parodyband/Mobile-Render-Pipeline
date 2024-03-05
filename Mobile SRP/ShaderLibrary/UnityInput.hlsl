@@ -35,7 +35,7 @@ CBUFFER_START(UnityPerDraw)
 #endif
 
 CBUFFER_END
-
+#ifndef USE_ASE
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
@@ -43,13 +43,8 @@ float4x4 unity_prev_MatrixM;
 float4x4 unity_prev_MatrixIM;
 float4x4 glstate_matrix_projection;
 
-#ifndef USE_ASE
 float3 _WorldSpaceCameraPos;
-#endif
-
 float3 _WorldSpaceCameraForward;
-
-#ifndef USE_ASE
 float4 unity_OrthoParams;
 float4 _ProjectionParams;
 float4 _ScreenParams;
