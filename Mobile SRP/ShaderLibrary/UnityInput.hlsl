@@ -7,9 +7,8 @@ CBUFFER_START(UnityPerDraw)
 	float4x4 unity_WorldToObject;
 	float4 unity_LODFade;
 	real4 unity_WorldTransformParams;
-#endif
-
 	float4 unity_RenderingLayer;
+#endif
 
 	real4 unity_LightData;
 	real4 unity_LightIndices[2];
