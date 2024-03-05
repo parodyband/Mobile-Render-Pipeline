@@ -20,7 +20,6 @@ CBUFFER_START(UnityPerDraw)
 	
 	float4 unity_LightmapST;
 	float4 unity_DynamicLightmapST;
-#endif
 	float4 unity_SHAr;
 	float4 unity_SHAg;
 	float4 unity_SHAb;
@@ -28,6 +27,7 @@ CBUFFER_START(UnityPerDraw)
 	float4 unity_SHBg;
 	float4 unity_SHBb;
 	float4 unity_SHC;
+#endif
 
 	float4 unity_ProbeVolumeParams;
 	float4x4 unity_ProbeVolumeWorldToObject;
