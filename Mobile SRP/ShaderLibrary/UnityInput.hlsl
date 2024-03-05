@@ -24,10 +24,6 @@ CBUFFER_START(UnityPerDraw)
 	float4 unity_SHBb;
 	float4 unity_SHC;
 
-	float4 _Time;
-	float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-	float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-
 	float4 unity_DeltaTime;
 	float4 unity_ProbeVolumeParams;
 	float4x4 unity_ProbeVolumeWorldToObject;
@@ -35,6 +31,13 @@ CBUFFER_START(UnityPerDraw)
 	float4 unity_ProbeVolumeMin;
 
 CBUFFER_END
+
+CBUFFER_START(UnityPerCamera)
+float4 _Time;
+float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
+float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
+CBUFFER_END
+
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
