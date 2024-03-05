@@ -12,6 +12,7 @@ CBUFFER_START(UnityPerDraw)
 
 	real4 unity_LightData;
 	real4 unity_LightIndices[2];
+#ifndef USE_ASE
 
 	float4 unity_ProbesOcclusion;
 	
@@ -19,7 +20,7 @@ CBUFFER_START(UnityPerDraw)
 	
 	float4 unity_LightmapST;
 	float4 unity_DynamicLightmapST;
-
+#endif
 	float4 unity_SHAr;
 	float4 unity_SHAg;
 	float4 unity_SHAb;
