@@ -5,9 +5,9 @@ CBUFFER_START(UnityPerDraw)
 #ifndef USE_ASE
 	float4x4 unity_ObjectToWorld;
 	float4x4 unity_WorldToObject;
-#endif
 	float4 unity_LODFade;
 	real4 unity_WorldTransformParams;
+#endif
 
 	float4 unity_RenderingLayer;
 
