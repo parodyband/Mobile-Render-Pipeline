@@ -40,7 +40,10 @@ float4x4 unity_prev_MatrixM;
 float4x4 unity_prev_MatrixIM;
 float4x4 glstate_matrix_projection;
 
+#ifndef USE_ASE
 float3 _WorldSpaceCameraPos;
+#endif
+
 float3 _WorldSpaceCameraForward;
 
 float4 unity_OrthoParams;
@@ -49,7 +52,7 @@ float4 _ScreenParams;
 float4 _ZBufferParams;
 
 
-#ifndef USE_ASE_TIME
+#ifndef USE_ASE
 float4 _Time;
 #endif
 
