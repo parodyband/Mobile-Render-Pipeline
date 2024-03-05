@@ -2,8 +2,10 @@
 #define CUSTOM_UNITY_INPUT_INCLUDED
 
 CBUFFER_START(UnityPerDraw)
+#ifndef USE_ASE
 	float4x4 unity_ObjectToWorld;
 	float4x4 unity_WorldToObject;
+#endif
 	float4 unity_LODFade;
 	real4 unity_WorldTransformParams;
 
@@ -46,13 +48,11 @@ float3 _WorldSpaceCameraPos;
 
 float3 _WorldSpaceCameraForward;
 
+#ifndef USE_ASE
 float4 unity_OrthoParams;
 float4 _ProjectionParams;
 float4 _ScreenParams;
 float4 _ZBufferParams;
-
-
-#ifndef USE_ASE
 float4 _Time;
 #endif
 
