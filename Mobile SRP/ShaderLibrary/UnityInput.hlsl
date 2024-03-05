@@ -48,6 +48,9 @@ float4 _ProjectionParams;
 float4 _ScreenParams;
 float4 _ZBufferParams;
 
-float2 _Time;
+
+#ifndef USE_ASE_TIME
+float4 _Time;
+#endif
 
 #endif
