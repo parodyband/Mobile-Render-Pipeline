@@ -33,7 +33,7 @@ public class CameraRenderer
             m_FrameTime = 0;
         }
 
-        Shader.SetGlobalVector(Time, new Vector2(UnityEngine.Time.deltaTime, m_FrameTime));
+        //Shader.SetGlobalVector(Time, new Vector4(UnityEngine.Time.deltaTime, m_FrameTime));
         Shader.SetGlobalVector(CameraForwardVector, camera.transform.forward);
 
         ProfilingSampler cameraSampler;
