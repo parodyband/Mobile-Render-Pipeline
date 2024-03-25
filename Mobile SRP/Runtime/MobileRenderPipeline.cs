@@ -61,6 +61,12 @@ public partial class MobileRenderPipeline : RenderPipeline
 				m_UseLightsPerObject,
 				m_ShadowSettings, m_PostFXSettings, m_ColorLUTResolution);
 		}
+		
+		if (m_DecalSettings.useDecals)
+		{
+			DecalRenderer.UpdateDecals();
+		}
+		
 		m_RenderGraph.EndFrame();
 	}
 

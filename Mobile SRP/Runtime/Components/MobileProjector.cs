@@ -64,6 +64,7 @@ public class MobileProjector : MonoBehaviour
         // Combine the projection and view matrices
         Matrix4x4 projectorMatrix = projectionMatrix * viewMatrix;
         m_Decal.ProjectorMatrix = projectorMatrix;
-        DecalRenderer.UpdateDecals();
+        
+        DecalRenderer.UpdateDecal(this, m_Decal);
     }
 }

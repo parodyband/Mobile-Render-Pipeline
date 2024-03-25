@@ -7,6 +7,8 @@ public static class DecalRenderer
 	private static readonly int DecalAtlas = Shader.PropertyToID("_DecalAtlas");
 	private static readonly int DecalDimensions = Shader.PropertyToID("_DecalDimensions");
 	private static readonly int DecalCount = Shader.PropertyToID("_DecalCount");
+	
+	private static bool _isDirty = true;
 
 	public static void InitializeDecalShaderResources(DecalSettings settings)
 	{
@@ -24,19 +26,26 @@ public static class DecalRenderer
 		Decals.Remove(projector);
 	}
 	
+	public static void UpdateDecal(MobileProjector projector, Decal decal)
+	{
+		Decals[projector] = decal;
+		_isDirty = true;
+	}
+
 	public static void UpdateDecals()
 	{
 		if (Decals.Count == 0)
 		{
 			Shader.SetGlobalInteger(DecalCount, 0);
-			Debug.Log("No decals to render");
 			return;
 		}
+		if (!_isDirty) return;
 		var array = Decals.Values.ToArray();
 		var buffer = new ComputeBuffer(array.Length, 144);
 		buffer.SetData(array);
 		Shader.SetGlobalBuffer(Shader.PropertyToID("_Decals"), buffer);
 		Shader.SetGlobalInteger(DecalCount, array.Length);
+		_isDirty = false;
 	}
 }
 
