@@ -26,6 +26,11 @@ public static class DecalRenderer
 	
 	public static void UpdateDecals()
 	{
+		if (Decals.Count == 0)
+		{
+			Shader.SetGlobalInteger(DecalCount, 0);
+			return;
+		}
 		var array = Decals.Values.ToArray();
 		var buffer = new ComputeBuffer(array.Length, 144);
 		buffer.SetData(array);

@@ -40,7 +40,7 @@ float3 GetProjectors(float3 worldPos, float3 normalWS)
         float2 projectorUV = projectorPos.xy / projectorPos.w * 0.5 + 0.5;
 
         // Calculate projector direction
-        float3 projectorDir = -normalize(decal.projectorMatrix[2].xyz);
+        const float3 projectorDir = -normalize(decal.projectorMatrix[2].xyz);
 
         // Sample projector texture
         half3 projection = SAMPLE_TEXTURE2D(_DecalAtlas, sampler_DecalAtlas, projectorUV);
