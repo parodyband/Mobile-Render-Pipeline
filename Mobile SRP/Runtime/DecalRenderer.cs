@@ -16,7 +16,7 @@ public static class DecalRenderer
 		Shader.SetGlobalVector(DecalDimensions, settings.atlasDimensions);
 	}
 	
-	public static void AddDecal(MobileProjector projector, Decal decal)
+	private static void AddDecal(MobileProjector projector, Decal decal)
 	{
 		Decals.TryAdd(projector, decal);
 	}
@@ -28,7 +28,15 @@ public static class DecalRenderer
 	
 	public static void UpdateDecal(MobileProjector projector, Decal decal)
 	{
+		//add first if not exist
+		AddDecal(projector, decal);
 		Decals[projector] = decal;
+		_isDirty = true;
+	}
+	
+	public static void FlushDecals()
+	{
+		Decals.Clear();
 		_isDirty = true;
 	}
 

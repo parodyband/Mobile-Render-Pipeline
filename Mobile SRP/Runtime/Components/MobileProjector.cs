@@ -10,7 +10,7 @@ public class MobileProjector : MonoBehaviour
     [SerializeField] private float boxSize;
     
     private Decal m_Decal;
-
+    
     private void OnDisable()
     {
         DecalRenderer.RemoveDecal(this);
@@ -27,7 +27,6 @@ public class MobileProjector : MonoBehaviour
     {
         // Update the projector matrix in edit mode
         UpdateProjector();
-        
         Vector3 position = transform.position;
         Gizmos.color = Color.red;
         Gizmos.matrix = Matrix4x4.TRS(position, Quaternion.Euler(boxRotation), Vector3.one);
@@ -46,8 +45,6 @@ public class MobileProjector : MonoBehaviour
 
     private void UpdateProjector()
     {
-        DecalRenderer.AddDecal(this, m_Decal);
-        
         var boxScale = new Vector3(boxSize, boxSize, boxSize);
         Matrix4x4 boxMatrix = Matrix4x4.TRS(transform.position, Quaternion.Euler(boxRotation), boxScale);
         
