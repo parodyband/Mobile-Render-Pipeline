@@ -28,7 +28,6 @@ public static class DecalRenderer
 	
 	public static void UpdateDecal(MobileProjector projector, Decal decal)
 	{
-		//add first if not exist
 		AddDecal(projector, decal);
 		Decals[projector] = decal;
 		_isDirty = true;
@@ -36,8 +35,8 @@ public static class DecalRenderer
 	
 	public static void FlushDecals()
 	{
-		Decals.Clear();
-		_isDirty = true;
+		// Decals.Clear();
+		// _isDirty = true;
 	}
 
 	public static void UpdateDecals()
