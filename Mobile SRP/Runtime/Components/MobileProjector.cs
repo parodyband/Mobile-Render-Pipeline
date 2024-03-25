@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [ExecuteInEditMode]
 public class MobileProjector : MonoBehaviour
@@ -31,17 +32,21 @@ public class MobileProjector : MonoBehaviour
     {
         // Update the projector matrix in edit mode
         UpdateProjector();
+        
+        Vector3 position = transform.position;
+        Gizmos.color = Color.red;
+        Gizmos.matrix = Matrix4x4.TRS(position, Quaternion.Euler(boxRotation), Vector3.one);
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(boxSize, boxSize,boxSize));
+    }
+
+    private void OnDrawGizmos()
+    {
         //draw the projector angle
         Gizmos.color = Color.green;
         Vector3 position = transform.position;
         Gizmos.matrix = Matrix4x4.TRS(position + projectorOffset, transform.rotation, Vector3.one);
         Gizmos.DrawLine(Vector3.zero, Vector3.forward * size);
         Gizmos.DrawWireSphere(Vector3.forward * size, 0.1f);
-        
-        //draw the box
-        Gizmos.color = Color.red;
-        Gizmos.matrix = Matrix4x4.TRS(position, Quaternion.Euler(boxRotation), Vector3.one);
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(boxSize, boxSize,boxSize));
     }
 
     private void UpdateProjector()
