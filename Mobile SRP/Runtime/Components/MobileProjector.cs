@@ -25,8 +25,6 @@ public class MobileProjector : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Update the projector matrix in edit mode
-        UpdateProjector();
         Vector3 position = transform.position;
         Gizmos.color = Color.red;
         Gizmos.matrix = Matrix4x4.TRS(position, Quaternion.Euler(boxRotation), Vector3.one);
@@ -35,7 +33,7 @@ public class MobileProjector : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        //draw the projector angle
+        UpdateProjector();
         Gizmos.color = Color.green;
         Vector3 position = transform.position;
         Gizmos.matrix = Matrix4x4.TRS(position + projectorOffset, transform.rotation, Vector3.one);
@@ -63,7 +61,6 @@ public class MobileProjector : MonoBehaviour
         // Combine the projection and view matrices
         Matrix4x4 projectorMatrix = projectionMatrix * viewMatrix;
         m_Decal.ProjectorMatrix = projectorMatrix;
-        
         DecalRenderer.UpdateDecal(this, m_Decal);
     }
 }
