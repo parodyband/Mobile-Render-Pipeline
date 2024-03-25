@@ -41,7 +41,7 @@ float3 GetProjectors(float3 worldPos, float3 normalWS)
         float3 projectorDir = -normalize(decal.projectorMatrix[2].xyz);
 
         // Sample projector texture
-        half3 projection = SAMPLE_TEXTURE2D(decal.projectorTexture, decal.samplerProjectorTexture, projectorUV);
+        half3 projection = SAMPLE_TEXTURE2D(projectorTexture, samplerProjectorTexture, projectorUV);
 
         // Apply projection based on normal direction
         float ndotl = dot(normalWS, projectorDir);
