@@ -11,11 +11,6 @@ public class MobileProjector : MonoBehaviour
     
     private Decal m_Decal;
 
-    private void OnEnable()
-    {
-        DecalRenderer.AddDecal(this, m_Decal);
-    }
-
     private void OnDisable()
     {
         DecalRenderer.RemoveDecal(this);
@@ -51,6 +46,8 @@ public class MobileProjector : MonoBehaviour
 
     private void UpdateProjector()
     {
+        DecalRenderer.AddDecal(this, m_Decal);
+        
         var boxScale = new Vector3(boxSize, boxSize, boxSize);
         Matrix4x4 boxMatrix = Matrix4x4.TRS(transform.position, Quaternion.Euler(boxRotation), boxScale);
         
