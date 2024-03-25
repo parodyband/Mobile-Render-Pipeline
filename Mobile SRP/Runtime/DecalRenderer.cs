@@ -7,14 +7,15 @@ public static class DecalRenderer
 	private static readonly int DecalAtlas = Shader.PropertyToID("_DecalAtlas");
 	private static readonly int DecalDimensions = Shader.PropertyToID("_DecalDimensions");
 	private static readonly int DecalCount = Shader.PropertyToID("_DecalCount");
-	
+	private static readonly int MaxDecalsOnScreen = Shader.PropertyToID("_MaxDecalsOnScreen");
+
 	private static bool _isDirty = true;
 
 	public static void InitializeDecalShaderResources(DecalSettings settings)
 	{
 		Shader.SetGlobalTexture(DecalAtlas, settings.decalAtlas);
 		Shader.SetGlobalVector(DecalDimensions, settings.atlasDimensions);
-		Shader.SetGlobalInteger("_MaxDecalsOnScreen", settings.maxDecalsOnScreen);
+		Shader.SetGlobalInteger(MaxDecalsOnScreen, settings.maxDecalsOnScreen);
 	}
 	
 	private static void AddDecal(MobileProjector projector, Decal decal)

@@ -32,7 +32,7 @@ float3 GetProjectors(float3 worldPos, float3 normalWS)
 
     for (uint i = 0; i < _DecalCount; i++)
     {
-        if (i >= MaxDecalsOnScreen)
+        if (i >= _MaxDecalsOnScreen)
             break;
         Decal decal = _Decals[i];
 
