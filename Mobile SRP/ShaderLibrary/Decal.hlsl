@@ -3,7 +3,6 @@
 
 #define _BoxScale 1.0
 #define _BoxSmoothnessRange 0.05
-#define MaxDecalsOnScreen 4
 
 struct Decal
 {
@@ -17,7 +16,9 @@ SAMPLER(sampler_DecalAtlas);
 
 StructuredBuffer<Decal> _Decals;
 float2 _DecalDimensions;
+
 int _DecalCount;
+int _MaxDecalsOnScreen;
 
 float sdfBox(float3 p, float3 b, float r)
 {

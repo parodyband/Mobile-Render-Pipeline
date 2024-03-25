@@ -14,6 +14,7 @@ public static class DecalRenderer
 	{
 		Shader.SetGlobalTexture(DecalAtlas, settings.decalAtlas);
 		Shader.SetGlobalVector(DecalDimensions, settings.atlasDimensions);
+		Shader.SetGlobalInteger("_MaxDecalsOnScreen", settings.maxDecalsOnScreen);
 	}
 	
 	private static void AddDecal(MobileProjector projector, Decal decal)
