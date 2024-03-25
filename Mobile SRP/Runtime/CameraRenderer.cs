@@ -4,181 +4,179 @@ using UnityEngine.Rendering;
 
 public class CameraRenderer
 {
-    public const float RenderScaleMin = 0.1f, RenderScaleMax = 2f;
+	public const float RenderScaleMin = 0.1f, RenderScaleMax = 2f;
 
-    private static readonly CameraSettings DefaultCameraSettings = new();
+	private static readonly CameraSettings DefaultCameraSettings = new();
 
-    private readonly PostFXStack m_PostFXStack = new();
+	private readonly PostFXStack m_PostFXStack = new();
 
-    private readonly Material m_Material;
+	private readonly Material m_Material;
 
-    public CameraRenderer(Shader shader) =>
-        m_Material = CoreUtils.CreateEngineMaterial(shader);
+	public CameraRenderer(Shader shader) => m_Material = CoreUtils.CreateEngineMaterial(shader);
 
-    public void Dispose() => CoreUtils.Destroy(m_Material);
+	public void Dispose() => CoreUtils.Destroy(m_Material);
 
-    private float m_FrameTime;
+	private float m_FrameTime;
 
-    private static readonly int Time = Shader.PropertyToID("_Time");
-    private static readonly int CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
+	private static readonly int Time = Shader.PropertyToID("_Time");
+	private static readonly int CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
 
-    public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera,
-        CameraBufferSettings bufferSettings,
-        bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
-    {
-        m_FrameTime += UnityEngine.Time.deltaTime;
+	public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera,
+		CameraBufferSettings bufferSettings,
+		bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
+	{
+		m_FrameTime += UnityEngine.Time.deltaTime;
 
-        if (m_FrameTime > 100)
-        {
-            m_FrameTime = 0;
-        }
+		if (m_FrameTime > 100)
+		{
+			m_FrameTime = 0;
+		}
 
-        //Shader.SetGlobalVector(Time, new Vector4(UnityEngine.Time.deltaTime, m_FrameTime));
-        Shader.SetGlobalVector(CameraForwardVector, camera.transform.forward);
+		Shader.SetGlobalVector(CameraForwardVector, camera.transform.forward);
 
-        ProfilingSampler cameraSampler;
-        CameraSettings cameraSettings;
-        if (camera.TryGetComponent(out MobileRenderPipelineCamera crpCamera))
-        {
-            cameraSampler = crpCamera.Sampler;
-            cameraSettings = crpCamera.Settings;
-        }
-        else
-        {
-            cameraSampler = ProfilingSampler.Get(camera.cameraType);
-            cameraSettings = DefaultCameraSettings;
-        }
+		ProfilingSampler cameraSampler;
+		CameraSettings cameraSettings;
+		if (camera.TryGetComponent(out MobileRenderPipelineCamera crpCamera))
+		{
+			cameraSampler = crpCamera.Sampler;
+			cameraSettings = crpCamera.Settings;
+		}
+		else
+		{
+			cameraSampler = ProfilingSampler.Get(camera.cameraType);
+			cameraSettings = DefaultCameraSettings;
+		}
 
-        bool useColorTexture, useDepthTexture;
-        if (camera.cameraType == CameraType.Reflection)
-        {
-            useColorTexture = bufferSettings.copyColorReflection;
-            useDepthTexture = bufferSettings.copyDepthReflection;
-        }
-        else
-        {
-            useColorTexture =
-                bufferSettings.copyColor && cameraSettings.copyColor;
-            useDepthTexture =
-                bufferSettings.copyDepth && cameraSettings.copyDepth;
-        }
+		bool useColorTexture, useDepthTexture;
+		if (camera.cameraType == CameraType.Reflection)
+		{
+			useColorTexture = bufferSettings.copyColorReflection;
+			useDepthTexture = bufferSettings.copyDepthReflection;
+		}
+		else
+		{
+			useColorTexture =
+				bufferSettings.copyColor && cameraSettings.copyColor;
+			useDepthTexture =
+				bufferSettings.copyDepth && cameraSettings.copyDepth;
+		}
 
-        if (cameraSettings.overridePostFX)
-        {
-            postFXSettings = cameraSettings.postFXSettings;
-        }
+		if (cameraSettings.overridePostFX)
+		{
+			postFXSettings = cameraSettings.postFXSettings;
+		}
 
-        var hasActivePostFX =
-            postFXSettings != null && PostFXSettings.IsActiveFor(camera);
+		var hasActivePostFX =
+			postFXSettings != null && PostFXSettings.IsActiveFor(camera);
 
-        var renderScale = cameraSettings.GetRenderScale(
-            bufferSettings.renderScale);
-        var useScaledRendering = renderScale is < 0.99f or > 1.01f;
+		var renderScale = cameraSettings.GetRenderScale(
+			bufferSettings.renderScale);
+		var useScaledRendering = renderScale is < 0.99f or > 1.01f;
 
 #if UNITY_EDITOR
-        if (camera.cameraType == CameraType.SceneView)
-        {
-            ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-            useScaledRendering = false;
-        }
+		if (camera.cameraType == CameraType.SceneView)
+		{
+			ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+			useScaledRendering = false;
+		}
 #endif
 
-        if (!camera.TryGetCullingParameters(
-                out var scriptableCullingParameters))
-        {
-            return;
-        }
+		if (!camera.TryGetCullingParameters(
+			    out var scriptableCullingParameters))
+		{
+			return;
+		}
 
-        scriptableCullingParameters.shadowDistance =
-            Mathf.Min(shadowSettings.maxDistance, camera.farClipPlane);
-        var cullingResults = context.Cull(
-            ref scriptableCullingParameters);
+		scriptableCullingParameters.shadowDistance =
+			Mathf.Min(shadowSettings.maxDistance, camera.farClipPlane);
+		CullingResults cullingResults = context.Cull(
+			ref scriptableCullingParameters);
 
-        var useHDR = bufferSettings.allowHDR && camera.allowHDR;
-        Vector2Int bufferSize = default;
-        if (useScaledRendering)
-        {
-            renderScale = Mathf.Clamp(
-                renderScale, RenderScaleMin, RenderScaleMax);
-            bufferSize.x = (int)(camera.pixelWidth * renderScale);
-            bufferSize.y = (int)(camera.pixelHeight * renderScale);
-        }
-        else
-        {
-            bufferSize.x = camera.pixelWidth;
-            bufferSize.y = camera.pixelHeight;
-        }
+		var useHDR = bufferSettings.allowHDR && camera.allowHDR;
+		Vector2Int bufferSize = default;
+		if (useScaledRendering)
+		{
+			renderScale = Mathf.Clamp(
+				renderScale, RenderScaleMin, RenderScaleMax);
+			bufferSize.x = (int)(camera.pixelWidth * renderScale);
+			bufferSize.y = (int)(camera.pixelHeight * renderScale);
+		}
+		else
+		{
+			bufferSize.x = camera.pixelWidth;
+			bufferSize.y = camera.pixelHeight;
+		}
 
-        bufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
-        m_PostFXStack.Setup(
-            camera, bufferSize, postFXSettings, cameraSettings.keepAlpha,
-            useHDR, colorLUTResolution, cameraSettings.finalBlendMode,
-            bufferSettings.bicubicRescaling, bufferSettings.fxaa);
+		bufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
+		m_PostFXStack.Setup(
+			camera, bufferSize, postFXSettings, cameraSettings.keepAlpha,
+			useHDR, colorLUTResolution, cameraSettings.finalBlendMode,
+			bufferSettings.bicubicRescaling, bufferSettings.fxaa);
 
-        var useIntermediateBuffer = useScaledRendering ||
-                                    useColorTexture || useDepthTexture || hasActivePostFX;
+		var useIntermediateBuffer = useScaledRendering ||
+		                            useColorTexture || useDepthTexture || hasActivePostFX;
 
-        var renderGraphParameters = new RenderGraphParameters
-        {
-            commandBuffer = CommandBufferPool.Get(),
-            currentFrameIndex = UnityEngine.Time.frameCount,
-            executionName = cameraSampler.name,
-            rendererListCulling = true,
-            scriptableRenderContext = context
-        };
-        
-        using (renderGraph.RecordAndExecute(renderGraphParameters))
-        {
-            using var _ = new RenderGraphProfilingScope(
-                renderGraph, cameraSampler);
-            var shadowTextures = new ShadowTextures();
+		var renderGraphParameters = new RenderGraphParameters
+		{
+			commandBuffer = CommandBufferPool.Get(),
+			currentFrameIndex = UnityEngine.Time.frameCount,
+			executionName = cameraSampler.name,
+			rendererListCulling = true,
+			scriptableRenderContext = context
+		};
 
-            if (!cameraSettings.disableShadowPass)
-            {
-                shadowTextures = LightingPass.Record(
-                    renderGraph, cullingResults, shadowSettings, useLightsPerObject,
-                    cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
-            }
+		using (renderGraph.RecordAndExecute(renderGraphParameters))
+		{
+			using var _ = new RenderGraphProfilingScope(
+				renderGraph, cameraSampler);
+			var shadowTextures = new ShadowTextures();
 
-            var textures = SetupPass.Record(
-                renderGraph, useIntermediateBuffer, useColorTexture,
-                useDepthTexture, useHDR, bufferSize, camera);
+			if (!cameraSettings.disableShadowPass)
+			{
+				shadowTextures = LightingPass.Record(
+					renderGraph, cullingResults, shadowSettings, useLightsPerObject,
+					cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
+			}
 
-            GeometryPass.Record(cameraSettings,
-                renderGraph, camera, cullingResults,
-                useLightsPerObject, cameraSettings.renderingLayerMask, true,
-                textures, shadowTextures);
+			var textures = SetupPass.Record(
+				renderGraph, useIntermediateBuffer, useColorTexture,
+				useDepthTexture, useHDR, bufferSize, camera);
 
-            SkyboxPass.Record(renderGraph, camera, textures);
+			GeometryPass.Record(cameraSettings,
+				renderGraph, camera, cullingResults,
+				useLightsPerObject, cameraSettings.renderingLayerMask, true,
+				textures, shadowTextures);
 
-            var copier = new CameraRendererCopier(
-                m_Material, camera, cameraSettings.finalBlendMode);
-            CopyAttachmentsPass.Record(
-                renderGraph, useColorTexture, useDepthTexture,
-                copier, textures);
+			SkyboxPass.Record(renderGraph, camera, textures);
 
-            GeometryPass.Record(cameraSettings,
-                renderGraph, camera, cullingResults,
-                useLightsPerObject, cameraSettings.renderingLayerMask, false,
-                textures, shadowTextures);
+			var copier = new CameraRendererCopier(
+				m_Material, camera, cameraSettings.finalBlendMode);
+			CopyAttachmentsPass.Record(
+				renderGraph, useColorTexture, useDepthTexture,
+				copier, textures);
 
-            UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
+			GeometryPass.Record(cameraSettings,
+				renderGraph, camera, cullingResults,
+				useLightsPerObject, cameraSettings.renderingLayerMask, false,
+				textures, shadowTextures);
 
-            if (hasActivePostFX)
-            {
-                PostFXPass.Record(renderGraph, m_PostFXStack, textures);
-            }
-            else if (useIntermediateBuffer)
-            {
-                FinalPass.Record(renderGraph, copier, textures);
-            }
+			UnsupportedShadersPass.Record(renderGraph, camera, cullingResults);
 
-            GizmosPass.Record(renderGraph, useIntermediateBuffer,
-                copier, textures);
-        }
+			if (hasActivePostFX)
+			{
+				PostFXPass.Record(renderGraph, m_PostFXStack, textures);
+			}
+			else if (useIntermediateBuffer)
+			{
+				FinalPass.Record(renderGraph, copier, textures);
+			}
 
-        context.ExecuteCommandBuffer(renderGraphParameters.commandBuffer);
-        context.Submit();
-        CommandBufferPool.Release(renderGraphParameters.commandBuffer);
-    }
+			GizmosPass.Record(renderGraph, useIntermediateBuffer,
+				copier, textures);
+		}
+
+		context.ExecuteCommandBuffer(renderGraphParameters.commandBuffer);
+		context.Submit();
+		CommandBufferPool.Release(renderGraphParameters.commandBuffer);
+	}
 }

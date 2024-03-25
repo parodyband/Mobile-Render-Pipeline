@@ -22,18 +22,23 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 
 	[SerializeField] private ShadowSettings shadows = default;
 
+	[SerializeField] private DecalSettings decalSettings = default;
+
 	[SerializeField] private PostFXSettings postFXSettings = default;
+	
 
 	public enum ColorLUTResolution
-	{ _16 = 16, _32 = 32, _64 = 64 }
+	{
+		_16 = 16,
+		_32 = 32,
+		_64 = 64
+	}
 
-	[SerializeField]
-	ColorLUTResolution colorLUTResolution = ColorLUTResolution._32;
+	[SerializeField] ColorLUTResolution colorLUTResolution = ColorLUTResolution._32;
 
 	[SerializeField] private Shader cameraRendererShader = default;
 
-	[Header("Deprecated Settings")]
-	[SerializeField, Tooltip("Dynamic batching is no longer used.")]
+	[Header("Deprecated Settings")] [SerializeField, Tooltip("Dynamic batching is no longer used.")]
 	private bool useDynamicBatching;
 
 	[SerializeField, Tooltip("GPU instancing is always enabled.")]
@@ -41,6 +46,6 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 
 	protected override RenderPipeline CreatePipeline() =>
 		new MobileRenderPipeline(cameraBuffer, useSRPBatcher,
-			useLightsPerObject, shadows, postFXSettings,
+			useLightsPerObject, decalSettings, shadows, postFXSettings,
 			(int)colorLUTResolution, cameraRendererShader);
 }

@@ -9,7 +9,8 @@ public class GeometryPass
 		SamplerOpaque = new("Opaque Geometry"),
 		SamplerTransparent = new("Transparent Geometry");
 
-	private static readonly ShaderTagId[] ShaderTagIDs = {
+	private static readonly ShaderTagId[] ShaderTagIDs =
+	{
 		new("SRPDefaultUnlit"),
 		new("DefaultLit")
 	};
@@ -34,17 +35,15 @@ public class GeometryPass
 		in CameraRendererTextures textures,
 		in ShadowTextures shadowTextures)
 	{
-		var sampler = opaque ? SamplerOpaque : SamplerTransparent;
+		ProfilingSampler sampler = opaque ? SamplerOpaque : SamplerTransparent;
 
-		using var builder = renderGraph.AddRenderPass(
+		using RenderGraphBuilder builder = renderGraph.AddRenderPass(
 			sampler.name, out GeometryPass pass, sampler);
-
+		
 		pass.m_List = builder.UseRendererList(renderGraph.CreateRendererList(
 			new RendererListDesc(ShaderTagIDs, cullingResults, camera)
 			{
-				sortingCriteria = opaque ?
-					SortingCriteria.CommonOpaque :
-					SortingCriteria.CommonTransparent,
+				sortingCriteria = opaque ? SortingCriteria.CommonOpaque : SortingCriteria.CommonTransparent,
 				rendererConfiguration =
 					PerObjectData.ReflectionProbes |
 					PerObjectData.Lightmaps |
@@ -53,32 +52,33 @@ public class GeometryPass
 					PerObjectData.OcclusionProbe |
 					PerObjectData.LightProbeProxyVolume |
 					PerObjectData.OcclusionProbeProxyVolume |
-					(useLightsPerObject ?
-						PerObjectData.LightData | PerObjectData.LightIndices :
-						PerObjectData.None),
-				renderQueueRange = opaque ?
-					RenderQueueRange.opaque : RenderQueueRange.transparent,
+					(useLightsPerObject ? PerObjectData.LightData | PerObjectData.LightIndices : PerObjectData.None),
+				renderQueueRange = opaque ? RenderQueueRange.opaque : RenderQueueRange.transparent,
 				renderingLayerMask = (uint)renderingLayerMask
 			}));
 
 		builder.ReadWriteTexture(textures.colorAttachment);
 		builder.ReadWriteTexture(textures.depthAttachment);
+		
 		if (!opaque)
 		{
 			if (textures.colorCopy.IsValid())
 			{
 				builder.ReadTexture(textures.colorCopy);
 			}
+
 			if (textures.depthCopy.IsValid())
 			{
 				builder.ReadTexture(textures.depthCopy);
 			}
 		}
+
 		if (!cameraSettings.disableShadowPass)
 		{
 			builder.ReadTexture(shadowTextures.directionalAtlas);
 			builder.ReadTexture(shadowTextures.otherAtlas);
 		}
+
 		builder.SetRenderFunc<GeometryPass>(
 			static (pass, context) => pass.Render(context));
 	}

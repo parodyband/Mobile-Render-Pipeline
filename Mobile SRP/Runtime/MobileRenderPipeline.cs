@@ -11,6 +11,8 @@ public partial class MobileRenderPipeline : RenderPipeline
 
 	private readonly bool m_UseLightsPerObject;
 
+	private readonly DecalSettings m_DecalSettings;
+
 	private readonly ShadowSettings m_ShadowSettings;
 
 	private readonly PostFXSettings m_PostFXSettings;
@@ -18,11 +20,13 @@ public partial class MobileRenderPipeline : RenderPipeline
 	private readonly int m_ColorLUTResolution;
 
 	private readonly RenderGraph m_RenderGraph = new("Mobile SRP Render Graph");
+	
+	
 
 	public MobileRenderPipeline(
 		CameraBufferSettings cameraBufferSettings,
 		bool useSRPBatcher,
-		bool useLightsPerObject, ShadowSettings shadowSettings,
+		bool useLightsPerObject, DecalSettings decalSettings, ShadowSettings shadowSettings,
 		PostFXSettings postFXSettings, int colorLUTResolution,
 		Shader cameraRendererShader)
 	{
@@ -31,26 +35,32 @@ public partial class MobileRenderPipeline : RenderPipeline
 		m_PostFXSettings = postFXSettings;
 		m_ShadowSettings = shadowSettings;
 		m_UseLightsPerObject = useLightsPerObject;
+		m_DecalSettings = decalSettings;
 		GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
 		GraphicsSettings.lightsUseLinearIntensity = true;
 		InitializeForEditor();
 		m_Renderer = new CameraRenderer(cameraRendererShader);
+		
+		if (m_DecalSettings.useDecals)
+		{
+			DecalRenderer.InitializeDecalShaderResources(m_DecalSettings);
+		}
 	}
 
-	protected override void Render(
-		ScriptableRenderContext context, Camera[] cameras) {}
-
-	protected override void Render(
-		ScriptableRenderContext context, List<Camera> cameras)
+	protected override void Render(ScriptableRenderContext context, Camera[] cameras)
 	{
-		foreach (var camera in cameras)
+	}
+	
+
+	protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
+	{
+		foreach (Camera camera in cameras)
 		{
 			m_Renderer.Render(
 				m_RenderGraph, context, camera, m_CameraBufferSettings,
 				m_UseLightsPerObject,
 				m_ShadowSettings, m_PostFXSettings, m_ColorLUTResolution);
 		}
-
 		m_RenderGraph.EndFrame();
 	}
 
