@@ -12,8 +12,8 @@ struct Decal
     float4 projectionParams;
 };
 
-TEXTURE2D(projectorTexture);
-SAMPLER(samplerProjectorTexture);
+TEXTURE2D(_DecalAtlas);
+SAMPLER(sampler_DecalAtlas);
 
 StructuredBuffer<Decal> _Decals;
 float2 _DecalDimensions;
@@ -41,7 +41,7 @@ float3 GetProjectors(float3 worldPos, float3 normalWS)
         float3 projectorDir = -normalize(decal.projectorMatrix[2].xyz);
 
         // Sample projector texture
-        half3 projection = SAMPLE_TEXTURE2D(projectorTexture, samplerProjectorTexture, projectorUV);
+        half3 projection = SAMPLE_TEXTURE2D(_DecalAtlas, sampler_DecalAtlas, projectorUV);
 
         // Apply projection based on normal direction
         float ndotl = dot(normalWS, projectorDir);
