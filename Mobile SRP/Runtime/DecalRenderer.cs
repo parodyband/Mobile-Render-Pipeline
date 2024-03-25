@@ -35,8 +35,8 @@ public static class DecalRenderer
 	
 	public static void FlushDecals()
 	{
-		// Decals.Clear();
-		// _isDirty = true;
+		Decals.Clear();
+		_isDirty = true;
 	}
 
 	public static void UpdateDecals()

@@ -43,6 +43,7 @@ public partial class MobileRenderPipeline : RenderPipeline
 		
 		if (m_DecalSettings.useDecals)
 		{
+			DecalRenderer.FlushDecals();
 			DecalRenderer.InitializeDecalShaderResources(m_DecalSettings);
 		}
 	}
@@ -61,8 +62,6 @@ public partial class MobileRenderPipeline : RenderPipeline
 				m_UseLightsPerObject,
 				m_ShadowSettings, m_PostFXSettings, m_ColorLUTResolution);
 		}
-		
-		DecalRenderer.FlushDecals();
 		
 		if (m_DecalSettings.useDecals)
 		{
