@@ -29,6 +29,7 @@ public static class DecalRenderer
 		if (Decals.Count == 0)
 		{
 			Shader.SetGlobalInteger(DecalCount, 0);
+			Debug.Log("No decals to render");
 			return;
 		}
 		var array = Decals.Values.ToArray();
