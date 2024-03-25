@@ -29,8 +29,10 @@ float3 GetProjectors(float3 worldPos, float3 normalWS)
 {
     float3 finalProjection = float3(0, 0, 0);
 
-    for (uint i = 0; i < MaxDecalsOnScreen; i++)
+    for (uint i = 0; i < _DecalCount; i++)
     {
+        if (i >= MaxDecalsOnScreen)
+            break;
         Decal decal = _Decals[i];
 
         // Calculate projector UV coordinates
