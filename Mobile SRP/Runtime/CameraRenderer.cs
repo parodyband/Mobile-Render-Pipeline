@@ -25,6 +25,7 @@ public class CameraRenderer
 		CameraBufferSettings bufferSettings,
 		bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
 	{
+		
 		m_FrameTime += UnityEngine.Time.deltaTime;
 
 		if (m_FrameTime > 100)

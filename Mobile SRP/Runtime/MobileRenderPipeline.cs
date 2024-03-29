@@ -57,6 +57,7 @@ public partial class MobileRenderPipeline : RenderPipeline
 	{
 		foreach (Camera camera in cameras)
 		{
+			BeginCameraRendering(context, camera);
 			m_Renderer.Render(
 				m_RenderGraph, context, camera, m_CameraBufferSettings,
 				m_UseLightsPerObject,
@@ -69,6 +70,7 @@ public partial class MobileRenderPipeline : RenderPipeline
 		}
 		
 		m_RenderGraph.EndFrame();
+		EndFrameRendering(context, cameras.ToArray());
 	}
 
 	protected override void Dispose(bool disposing)
