@@ -79,7 +79,18 @@ public class GeometryPass
 			builder.ReadTexture(shadowTextures.otherAtlas);
 		}
 
-		builder.SetRenderFunc<GeometryPass>(
-			static (pass, context) => pass.Render(context));
+		builder.SetRenderFunc(delegate(GeometryPass data, RenderGraphContext context)
+		{
+			RenderFunc(data, context, camera);
+		});
+	}
+	private static readonly int CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
+	private static readonly int WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
+	private static void RenderFunc(GeometryPass pass, RenderGraphContext context, Component camera)
+	{
+		CommandBuffer buffer = context.cmd;
+		buffer.SetGlobalVector(CameraForwardVector, camera.transform.forward);
+		buffer.SetGlobalVector(WorldSpaceCameraPos, camera.transform.position);
+		pass.Render(context);
 	}
 }

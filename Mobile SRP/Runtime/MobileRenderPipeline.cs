@@ -20,6 +20,7 @@ public partial class MobileRenderPipeline : RenderPipeline
 	private readonly int m_ColorLUTResolution;
 
 	private readonly RenderGraph m_RenderGraph = new("Mobile SRP Render Graph");
+	
 
 	public MobileRenderPipeline(
 		CameraBufferSettings cameraBufferSettings,
@@ -60,6 +61,8 @@ public partial class MobileRenderPipeline : RenderPipeline
 				m_RenderGraph, context, camera, m_CameraBufferSettings,
 				m_UseLightsPerObject,
 				m_ShadowSettings, m_PostFXSettings, m_ColorLUTResolution);
+			
+
 		}
 		
 		if (m_DecalSettings.useDecals)

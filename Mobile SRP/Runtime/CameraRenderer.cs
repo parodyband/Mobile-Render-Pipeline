@@ -19,14 +19,11 @@ public class CameraRenderer
 	private float m_FrameTime;
 
 	private static readonly int Time = Shader.PropertyToID("_Time");
-	private static readonly int CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
-	private static readonly int WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
 
 	public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera,
 		CameraBufferSettings bufferSettings,
 		bool useLightsPerObject, ShadowSettings shadowSettings, PostFXSettings postFXSettings, int colorLUTResolution)
 	{
-		
 		m_FrameTime += UnityEngine.Time.deltaTime;
 
 		if (m_FrameTime > 100)
@@ -34,8 +31,7 @@ public class CameraRenderer
 			m_FrameTime = 0;
 		}
 
-		Shader.SetGlobalVector(CameraForwardVector, camera.transform.forward);
-		Shader.SetGlobalVector(WorldSpaceCameraPos, camera.transform.position);
+		
 
 		ProfilingSampler cameraSampler;
 		CameraSettings cameraSettings;
