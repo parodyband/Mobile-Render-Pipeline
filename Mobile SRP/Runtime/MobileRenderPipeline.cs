@@ -20,8 +20,6 @@ public partial class MobileRenderPipeline : RenderPipeline
 	private readonly int m_ColorLUTResolution;
 
 	private readonly RenderGraph m_RenderGraph = new("Mobile SRP Render Graph");
-	
-	
 
 	public MobileRenderPipeline(
 		CameraBufferSettings cameraBufferSettings,

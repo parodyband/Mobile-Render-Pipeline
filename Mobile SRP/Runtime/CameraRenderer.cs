@@ -20,6 +20,7 @@ public class CameraRenderer
 
 	private static readonly int Time = Shader.PropertyToID("_Time");
 	private static readonly int CameraForwardVector = Shader.PropertyToID("_CameraForwardVector");
+	private static readonly int WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
 
 	public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera,
 		CameraBufferSettings bufferSettings,
@@ -34,6 +35,7 @@ public class CameraRenderer
 		}
 
 		Shader.SetGlobalVector(CameraForwardVector, camera.transform.forward);
+		Shader.SetGlobalVector(WorldSpaceCameraPos, camera.transform.position);
 
 		ProfilingSampler cameraSampler;
 		CameraSettings cameraSettings;
