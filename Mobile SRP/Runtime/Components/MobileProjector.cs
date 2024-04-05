@@ -25,6 +25,7 @@ public class MobileProjector : MonoBehaviour
     {
         UpdateProjector();
         if (!transform.hasChanged) return;
+        RecalculateDecal();
     }
 
     private void OnDrawGizmosSelected()
