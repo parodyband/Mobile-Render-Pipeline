@@ -16,6 +16,11 @@ public class MobileProjector : MonoBehaviour
         DecalRenderer.RemoveDecal(this);
     }
 
+    private void Start()
+    {
+        UpdateProjector();
+    }
+
     private void Update()
     {
         if (!transform.hasChanged) return;
