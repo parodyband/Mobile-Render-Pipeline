@@ -15,17 +15,16 @@ public class MobileProjector : MonoBehaviour
     {
         DecalRenderer.RemoveDecal(this);
     }
-
-    private void Start()
+    
+    private void OnEnable()
     {
-        UpdateProjector();
+        RecalculateDecal();
     }
 
     private void Update()
     {
-        if (!transform.hasChanged) return;
         UpdateProjector();
-        transform.hasChanged = false;
+        if (!transform.hasChanged) return;
     }
 
     private void OnDrawGizmosSelected()
@@ -38,6 +37,7 @@ public class MobileProjector : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        RecalculateDecal();
         UpdateProjector();
         Gizmos.color = Color.green;
         Vector3 position = transform.position;
@@ -45,8 +45,8 @@ public class MobileProjector : MonoBehaviour
         Gizmos.DrawLine(Vector3.zero, Vector3.forward * size);
         Gizmos.DrawWireSphere(Vector3.forward * size, 0.1f);
     }
-
-    private void UpdateProjector()
+    
+    private void RecalculateDecal()
     {
         var boxScale = new Vector3(boxSize, boxSize, boxSize);
         Matrix4x4 boxMatrix = Matrix4x4.TRS(transform.position, Quaternion.Euler(boxRotation), boxScale);
@@ -66,6 +66,10 @@ public class MobileProjector : MonoBehaviour
         // Combine the projection and view matrices
         Matrix4x4 projectorMatrix = projectionMatrix * viewMatrix;
         m_Decal.ProjectorMatrix = projectorMatrix;
+    }
+
+    private void UpdateProjector()
+    {
         DecalRenderer.UpdateDecal(this, m_Decal);
     }
 }
