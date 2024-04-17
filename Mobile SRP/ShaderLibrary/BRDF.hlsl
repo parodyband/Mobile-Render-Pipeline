@@ -47,21 +47,14 @@ real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 	return pow(nh, specularPower) * 15 * saturate(1.0 - brdf.roughness * 1.5);
 }
 #else
-real SpecularStrength(Surface surface, BRDF brdf, Light light) {
+real SpecularStrength (Surface surface, BRDF brdf, Light light) {
 	real3 h = SafeNormalize(light.direction + surface.viewDirection);
-	real NdotH = max(dot(surface.normal, h), 0.0);
-	real NdotV = max(dot(surface.normal, surface.viewDirection), 0.0);
-	real NdotL = max(dot(surface.normal, light.direction), 0.0);
-	real alpha = Square(brdf.roughness); // Roughness^2 for GGX
-
-	real D = alpha / (3.14159265 * pow((NdotH * NdotH * (alpha - 1.0) + 1.0), 2.0));
-	real k = Square(brdf.roughness / 2.0); // Geometric shadowing/masking factor k
-	real G = NdotL / (NdotL * (1.0 - k) + k) * NdotV / (NdotV * (1.0 - k) + k);
-
-	real fresnel = pow(1.0 - NdotV, 5.0);
-	real F = brdf.fresnel + (1.0 - brdf.fresnel) * fresnel;
-
-	return D * G * F;
+	real nh2 = Square(saturate(dot(surface.normal, h)));
+	real lh2 = Square(saturate(dot(light.direction, h)));
+	real r2 = Square(brdf.roughness);
+	real d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
+	real normalization = brdf.roughness * 4.0 + 2.0;
+	return r2 / (d2 * max(0.1, lh2) * normalization);
 }
 #endif
 
