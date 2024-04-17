@@ -54,7 +54,7 @@ real SpecularStrength (Surface surface, BRDF brdf, Light light) {
 	real r2 = Square(brdf.roughness);
 	real d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
 	real normalization = brdf.roughness * 4.0 + 2.0;
-	return r2 / (d2 * max(0.1, lh2) * normalization) * 1.2;
+	return r2 / (d2 * max(0.1, lh2) * normalization) * 1.5;
 }
 #endif
 
