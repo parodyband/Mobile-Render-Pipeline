@@ -27,7 +27,7 @@ public partial class MobileRenderPipeline : RenderPipeline
 		bool useSRPBatcher,
 		bool useLightsPerObject, DecalSettings decalSettings, ShadowSettings shadowSettings,
 		PostFXSettings postFXSettings, int colorLUTResolution,
-		Shader cameraRendererShader)
+		Shader cameraRendererShader, bool isMobilePlatform)
 	{
 		m_ColorLUTResolution = colorLUTResolution;
 		m_CameraBufferSettings = cameraBufferSettings;
@@ -44,6 +44,15 @@ public partial class MobileRenderPipeline : RenderPipeline
 		{
 			DecalRenderer.FlushDecals();
 			DecalRenderer.InitializeDecalShaderResources(m_DecalSettings);
+		}
+		
+		if (isMobilePlatform)
+		{
+			Shader.EnableKeyword("RENDER_MOBILE");
+		}
+		else
+		{
+			Shader.DisableKeyword("RENDER_MOBILE");
 		}
 	}
 

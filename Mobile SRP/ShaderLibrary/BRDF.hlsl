@@ -1,5 +1,6 @@
 ﻿#ifndef CUSTOM_BRDF_INCLUDED
 #define CUSTOM_BRDF_INCLUDED
+#pragma multi_compile _ RENDER_MOBILE
 
 struct BRDF {
 	real3 diffuse;
@@ -34,17 +35,7 @@ BRDF GetBRDF (Surface surface, bool applyAlphaToDiffuse = false) {
 	return brdf;
 }
 
-// real SpecularStrength (Surface surface, BRDF brdf, Light light) {
-// 	real3 h = SafeNormalize(light.direction + surface.viewDirection);
-// 	real nh2 = Square(saturate(dot(surface.normal, h)));
-// 	real lh2 = Square(saturate(dot(light.direction, h)));
-// 	real r2 = Square(brdf.roughness);
-// 	real d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
-// 	real normalization = brdf.roughness * 4.0 + 2.0;
-// 	return r2 / (d2 * max(0.1, lh2) * normalization);
-// }
-
-//Fake Mobile Strength
+#ifdef RENDER_MOBILE
 real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 	// Calculate the halfway vector
 	const real3 h = SafeNormalize(light.direction + surface.viewDirection);
@@ -55,6 +46,17 @@ real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 	// Calculate the final specular strength
 	return pow(nh, specularPower) * 15 * saturate(1.0 - brdf.roughness * 1.5);
 }
+#else
+real SpecularStrength (Surface surface, BRDF brdf, Light light) {
+	real3 h = SafeNormalize(light.direction + surface.viewDirection);
+	real nh2 = Square(saturate(dot(surface.normal, h)));
+	real lh2 = Square(saturate(dot(light.direction, h)));
+	real r2 = Square(brdf.roughness);
+	real d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
+	real normalization = brdf.roughness * 4.0 + 2.0;
+	return r2 / (d2 * max(0.1, lh2) * normalization);
+}
+#endif
 
 real3 DirectBRDF (Surface surface, BRDF brdf, Light light) {
 	return SpecularStrength(surface, brdf, light) * brdf.specular + brdf.diffuse;

@@ -18,7 +18,8 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 
 	[SerializeField] private bool
 		useSRPBatcher = true,
-		useLightsPerObject = true;
+		useLightsPerObject = true,
+		useCheapSpecularBRDF = false;
 
 	[SerializeField] private ShadowSettings shadows = default;
 
@@ -26,7 +27,6 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 
 	[SerializeField] private PostFXSettings postFXSettings = default;
 	
-
 	public enum ColorLUTResolution
 	{
 		_16 = 16,
@@ -47,5 +47,5 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 	protected override RenderPipeline CreatePipeline() =>
 		new MobileRenderPipeline(cameraBuffer, useSRPBatcher,
 			useLightsPerObject, decalSettings, shadows, postFXSettings,
-			(int)colorLUTResolution, cameraRendererShader);
+			(int)colorLUTResolution, cameraRendererShader, useCheapSpecularBRDF);
 }
