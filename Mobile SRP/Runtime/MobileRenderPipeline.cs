@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -27,7 +28,7 @@ public partial class MobileRenderPipeline : RenderPipeline
 		bool useSRPBatcher,
 		bool useLightsPerObject, DecalSettings decalSettings, ShadowSettings shadowSettings,
 		PostFXSettings postFXSettings, int colorLUTResolution,
-		Shader cameraRendererShader, bool isMobilePlatform)
+		Shader cameraRendererShader, BRDFTypes brdfType)
 	{
 		m_ColorLUTResolution = colorLUTResolution;
 		m_CameraBufferSettings = cameraBufferSettings;
@@ -46,13 +47,11 @@ public partial class MobileRenderPipeline : RenderPipeline
 			DecalRenderer.InitializeDecalShaderResources(m_DecalSettings);
 		}
 		
-		if (isMobilePlatform)
+		Shader.EnableKeyword("BRDF_" + brdfType);
+		foreach (BRDFTypes brdf in Enum.GetValues(typeof(BRDFTypes)))
 		{
-			Shader.EnableKeyword("RENDER_MOBILE");
-		}
-		else
-		{
-			Shader.DisableKeyword("RENDER_MOBILE");
+			if (brdf == brdfType) continue;
+			Shader.DisableKeyword("BRDF_" + brdf);
 		}
 	}
 

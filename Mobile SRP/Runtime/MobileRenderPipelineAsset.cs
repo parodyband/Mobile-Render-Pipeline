@@ -1,6 +1,13 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
+public enum BRDFTypes
+{
+	CHEAP,
+	STANDARD,
+	GGXHIGHQUALITY
+}
+
 [CreateAssetMenu(menuName = "Rendering/Mobile Render Pipeline Settings")]
 public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 {
@@ -18,8 +25,9 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 
 	[SerializeField] private bool
 		useSRPBatcher = true,
-		useLightsPerObject = true,
-		useCheapSpecularBRDF = false;
+		useLightsPerObject = true;
+	
+	[SerializeField] private BRDFTypes brdfType = BRDFTypes.STANDARD;
 
 	[SerializeField] private ShadowSettings shadows = default;
 
@@ -47,5 +55,5 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 	protected override RenderPipeline CreatePipeline() =>
 		new MobileRenderPipeline(cameraBuffer, useSRPBatcher,
 			useLightsPerObject, decalSettings, shadows, postFXSettings,
-			(int)colorLUTResolution, cameraRendererShader, useCheapSpecularBRDF);
+			(int)colorLUTResolution, cameraRendererShader, brdfType);
 }
