@@ -50,11 +50,15 @@ real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 }
 #elif defined(BRDF_GGXHIGHQUALITY)
 real SpecularStrength(Surface surface, BRDF brdf, Light light) {
+	real smoothness = 1.0 - brdf.roughness;
+	smoothness = clamp(smoothness, MIN_REFLECTIVITY, 1.0);
+	real roughness = 1.0 - smoothness;
+    
 	real3 h = SafeNormalize(light.direction + surface.viewDirection);
 	real NdotH = max(dot(surface.normal, h), 0.0);
 	real NdotV = max(dot(surface.normal, surface.viewDirection), 0.0);
 	real NdotL = max(dot(surface.normal, light.direction), 0.0);
-	real alpha = Square(brdf.roughness); // Roughness^2 for GGX
+	real alpha = roughness * roughness;
 
 	real D = alpha / (3.14159265 * pow((NdotH * NdotH * (alpha - 1.0) + 1.0), 2.0));
 
