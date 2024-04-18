@@ -41,6 +41,11 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 		_32 = 32,
 		_64 = 64
 	}
+	
+	public void SetRenderScale(float value)
+	{
+		cameraBuffer.renderScale = value;
+	}
 
 	[SerializeField] ColorLUTResolution colorLUTResolution = ColorLUTResolution._32;
 
