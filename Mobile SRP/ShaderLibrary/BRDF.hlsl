@@ -51,7 +51,7 @@ real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 #elif defined(BRDF_GGXHIGHQUALITY)
 real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 	real smoothness = 1.0 - brdf.roughness;
-	smoothness = clamp(smoothness, MIN_REFLECTIVITY, 1.0);
+	smoothness = clamp(smoothness, MIN_REFLECTIVITY, .99);
 	real roughness = 1.0 - smoothness;
     
 	real3 h = SafeNormalize(light.direction + surface.viewDirection);
