@@ -22,6 +22,12 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 			subpixelBlending = 0.75f
 		}
 	};
+	
+	public float RenderScale
+	{
+		get => cameraBuffer.renderScale;
+		set => cameraBuffer.renderScale = value > 0.5f ? value : 0.5f;
+	}
 
 	[SerializeField] private bool
 		useSRPBatcher = true,
@@ -40,12 +46,6 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 		_16 = 16,
 		_32 = 32,
 		_64 = 64
-	}
-	
-	public void SetRenderScale(float value)
-	{
-		cameraBuffer.renderScale = value;
-		//invoke change
 	}
 
 	[SerializeField] ColorLUTResolution colorLUTResolution = ColorLUTResolution._32;

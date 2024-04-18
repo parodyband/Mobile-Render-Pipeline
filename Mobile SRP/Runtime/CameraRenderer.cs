@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 public class CameraRenderer
 {
-	public const float RenderScaleMin = 0.1f, RenderScaleMax = 2f;
+	public const float RenderScaleMin = 0.5f, RenderScaleMax = 2f;
 
 	private static readonly CameraSettings DefaultCameraSettings = new();
 
