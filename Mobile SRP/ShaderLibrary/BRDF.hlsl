@@ -57,8 +57,11 @@ real SpecularStrength(Surface surface, BRDF brdf, Light light) {
 	real alpha = Square(brdf.roughness); // Roughness^2 for GGX
 
 	real D = alpha / (3.14159265 * pow((NdotH * NdotH * (alpha - 1.0) + 1.0), 2.0));
-	real k = Square(brdf.roughness / 2.0); // Geometric shadowing/masking factor k
-	real G = NdotL / (NdotL * (1.0 - k) + k) * NdotV / (NdotV * (1.0 - k) + k);
+
+	real k = alpha / 2.0;
+	real G_V = NdotV / (NdotV * (1.0 - k) + k);
+	real G_L = NdotL / (NdotL * (1.0 - k) + k);
+	real G = G_V * G_L;
 
 	real fresnel = pow(1.0 - NdotV, 5.0);
 	real F = brdf.fresnel + (1.0 - brdf.fresnel) * fresnel;
