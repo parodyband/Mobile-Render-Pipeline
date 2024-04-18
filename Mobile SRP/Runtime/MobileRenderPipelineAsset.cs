@@ -22,12 +22,6 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 			subpixelBlending = 0.75f
 		}
 	};
-	
-	public float RenderScale
-	{
-		get => cameraBuffer.renderScale;
-		set => cameraBuffer.renderScale = value > 0.5f ? value : 0.5f;
-	}
 
 	[SerializeField] private bool
 		useSRPBatcher = true,
@@ -41,7 +35,7 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 
 	[SerializeField] private PostFXSettings postFXSettings = default;
 	
-	public enum ColorLUTResolution
+	public enum ColorLUTResolution	
 	{
 		_16 = 16,
 		_32 = 32,
@@ -51,6 +45,12 @@ public partial class MobileRenderPipelineAsset : RenderPipelineAsset
 	[SerializeField] ColorLUTResolution colorLUTResolution = ColorLUTResolution._32;
 
 	[SerializeField] private Shader cameraRendererShader = default;
+		
+	public float RenderScale
+	{
+		get => cameraBuffer.renderScale;
+		set => cameraBuffer.renderScale = value > 0.5f ? value : 0.5f;
+	}
 
 	[Header("Deprecated Settings")] [SerializeField, Tooltip("Dynamic batching is no longer used.")]
 	private bool useDynamicBatching;
