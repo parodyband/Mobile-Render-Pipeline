@@ -1,8 +1,9 @@
 ﻿#ifndef CUSTOM_BRDF_INCLUDED
 #define CUSTOM_BRDF_INCLUDED
-#pragma multi_compile _ BRDF_CHEAP
-#pragma multi_compile _ BRDF_STANDARD
-#pragma multi_compile _ BRDF_GGXHIGHQUALITY
+
+#pragma shader_feature _ BRDF_CHEAP
+#pragma shader_feature _ BRDF_STANDARD
+#pragma shader_feature _ BRDF_GGXHIGHQUALITY
 
 struct BRDF {
 	real3 diffuse;
