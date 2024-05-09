@@ -12,7 +12,8 @@ public class GeometryPass
 	private static readonly ShaderTagId[] ShaderTagIDs =
 	{
 		new("SRPDefaultUnlit"),
-		new("DefaultLit")
+		new("DefaultLit"),
+		new ("XRay")
 	};
 
 	private RendererListHandle m_List;
