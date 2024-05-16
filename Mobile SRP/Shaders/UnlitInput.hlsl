@@ -45,7 +45,7 @@ InputConfig GetInputConfig (float4 positionSS, float2 baseUV) {
 
 float2 TransformBaseUV (float2 baseUV) {
 	float4 baseST = INPUT_PROP(_BaseMap_ST);
-	return baseUV * baseST.xy + baseST.zw + _Time.y * INPUT_PROP(_PanSpeed);
+	return baseUV * baseST.xy + baseST.zw + _Time.y * INPUT_PROP(_PanSpeed).xy;
 }
 
 float2 TransformDetailUV (float2 detailUV) {
