@@ -16,6 +16,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float, _DistortionBlend)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
+	UNITY_DEFINE_INSTANCED_PROP(float, _PanSpeed)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 #define INPUT_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
@@ -44,7 +45,7 @@ InputConfig GetInputConfig (float4 positionSS, float2 baseUV) {
 
 float2 TransformBaseUV (float2 baseUV) {
 	float4 baseST = INPUT_PROP(_BaseMap_ST);
-	return baseUV * baseST.xy + baseST.zw;
+	return baseUV * baseST.xy + baseST.zw + _Time.y * INPUT_PROP(_PanSpeed);
 }
 
 float2 TransformDetailUV (float2 detailUV) {

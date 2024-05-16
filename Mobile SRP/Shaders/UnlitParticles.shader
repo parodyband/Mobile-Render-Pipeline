@@ -5,6 +5,9 @@
 		[HDR] _BaseColor("Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		[Toggle(_VERTEX_COLORS)] _VertexColors ("Vertex Colors", Float) = 0
 		[Toggle(_FLIPBOOK_BLENDING)] _FlipbookBlending ("Flipbook Blending", Float) = 0
+		//vector4
+		_PanSpeed("Pan Speed", Vector) = (0,0,0,0)
+		
 		_Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 		[Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
 		[KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
