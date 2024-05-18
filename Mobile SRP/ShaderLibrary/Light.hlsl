@@ -2,7 +2,7 @@
 #define CUSTOM_LIGHT_INCLUDED
 
 #define MAX_DIRECTIONAL_LIGHT_COUNT 4
-#define MAX_OTHER_LIGHT_COUNT 64
+#define MAX_OTHER_LIGHT_COUNT 10
 
 CBUFFER_START(_CustomLight)
 	int _DirectionalLightCount;

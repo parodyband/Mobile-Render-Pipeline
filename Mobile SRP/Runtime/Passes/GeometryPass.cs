@@ -14,8 +14,8 @@ public class GeometryPass
 		new("SRPDefaultUnlit"),
 		new("DefaultLit"),
 		new ("XRay"),
-        new ("Ghost"),
-        new ("Outline")
+        new ("Ghost")
+        //new ("Outline")
 	};
 
 	private RendererListHandle m_List;
