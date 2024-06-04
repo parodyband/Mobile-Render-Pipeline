@@ -26,7 +26,8 @@ public class PostFXStack
 		ApplyColorGradingWithLuma,
 		FinalRescale,
 		FXAA,
-		FXAAWithLuma
+		FXAAWithLuma,
+		DistanceFog
 	}
 
 	private const string

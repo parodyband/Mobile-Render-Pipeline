@@ -1,21 +1,22 @@
 ﻿#ifndef CUSTOM_LIGHTING_INCLUDED
 #define CUSTOM_LIGHTING_INCLUDED
 
-float3 IncomingLight (Surface surface, Light light) {
-	return
-		saturate(dot(surface.normal, light.direction) * light.attenuation) *
+float3 IncomingLight (Surface surface, Light light, half halfLambertMask = 0) {
+	float3 normalLight = saturate(dot(surface.normal, light.direction) * light.attenuation) *
 		light.color;
+	float3 halfLambert = saturate((dot(surface.normal, light.direction)) * .5 + .5 * light.attenuation) * light.color;
+	return lerp(normalLight, halfLambert, halfLambertMask);
 }
 
-float3 GetLighting (Surface surface, BRDF brdf, Light light) {
-	return IncomingLight(surface, light) * DirectBRDF(surface, brdf, light);
+float3 GetLighting (Surface surface, BRDF brdf, Light light, half halfLambertMask = 0) {
+	return IncomingLight(surface, light, halfLambertMask) * DirectBRDF(surface, brdf, light);
 }
 
 bool RenderingLayersOverlap (Surface surface, Light light) {
 	return (surface.renderingLayerMask & light.renderingLayerMask) != 0;
 }
 
-float3 GetLighting (Surface surfaceWS, BRDF brdf, GI gi) {
+float3 GetLighting (Surface surfaceWS, BRDF brdf, GI gi, half halfLambertMask = 0) {
 	ShadowData shadowData = GetShadowData(surfaceWS);
 	shadowData.shadowMask = gi.shadowMask;
 	
@@ -24,7 +25,7 @@ float3 GetLighting (Surface surfaceWS, BRDF brdf, GI gi) {
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
 		if (RenderingLayersOverlap(surfaceWS, light)) {
-			color += GetLighting(surfaceWS, brdf, light);
+			color += GetLighting(surfaceWS, brdf, light, halfLambertMask);
 		}
 	}
 	
