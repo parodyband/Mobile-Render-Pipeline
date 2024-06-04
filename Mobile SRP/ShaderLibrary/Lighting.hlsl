@@ -2,11 +2,18 @@
 #define CUSTOM_LIGHTING_INCLUDED
 
 float3 IncomingLight (Surface surface, Light light, half halfLambertMask = 0) {
-	float3 normalLight = saturate(dot(surface.normal, light.direction) * light.attenuation) *
-		light.color;
-	float3 halfLambert = saturate((dot(surface.normal, light.direction)) * .5 + .5 * light.attenuation) * light.color;
-	return lerp(normalLight, halfLambert, halfLambertMask);
+	// Calculate the normal lighting term
+	float NdotL = saturate(dot(surface.normal, light.direction));
+	float3 normalLight = NdotL * light.attenuation * light.color;
+
+	// Calculate the half Lambert lighting term
+	float halfLambert = saturate(NdotL * 0.5 + 0.5);
+	float3 halfLambertLight = halfLambert * light.attenuation * light.color;
+
+	// Interpolate between normal lighting and half Lambert lighting
+	return lerp(normalLight, halfLambertLight, halfLambertMask);
 }
+
 
 float3 GetLighting (Surface surface, BRDF brdf, Light light, half halfLambertMask = 0) {
 	return IncomingLight(surface, light, halfLambertMask) * DirectBRDF(surface, brdf, light);
